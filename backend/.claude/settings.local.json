@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean:*)",
+      "Bash(find ./lawyer-service/src/main/java -name \"*.java\" -exec sh -c 'if grep -q \"class.*Request\\\\|class.*Response\" \"$1\" 2>/dev/null; then echo \"=== $1 ===\"; grep \"^[[:space:]]*public.*class\" \"$1\" | head -5; fi' _ {} \\\\;)",
+      "Bash(mvn dependency:tree)",
+      "Bash(find:*)",
+      "Bash(mvn compile:*)",
+      "Bash(javac:*)",
+      "Bash(java:*)",
+      "Bash(xargs sed:*)",
+      "Bash(mvn spring-boot:run -pl lawyer-api)",
+      "Bash(cp:*)"
+    ]
+  }
+}

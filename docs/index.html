@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>律师AI助手 - 劳动法专业版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5a87 100%);
+            color: white;
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.3s;
+        }
+
+        .user-info:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #4299e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* 主体布局 */
+        .main-container {
+            display: flex;
+            margin-top: 60px;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 220px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+        }
+
+        .nav-menu {
+            padding: 16px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            color: #4a5568;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f7fafc;
+            color: #2d5a87;
+        }
+
+        .nav-item.active {
+            background: #ebf8ff;
+            color: #2d5a87;
+            border-left-color: #2d5a87;
+            font-weight: 500;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* 内容区 */
+        .content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 24px;
+        }
+
+        /* 页面标题 */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a365d;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #2d5a87;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a365d;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f7fafc;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a365d;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* 页面容器 */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ========== 智能咨询页面 ========== */
+        .chat-container {
+            height: calc(100vh - 160px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #e2e8f0;
+        }
+
+        .message.ai .message-avatar {
+            background: #2d5a87;
+        }
+
+        .message-content {
+            flex: 1;
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 80%;
+        }
+
+        .message.ai .message-content {
+            background: #ebf8ff;
+        }
+
+        .message-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .message-text {
+            line-height: 1.6;
+        }
+
+        .message-section {
+            margin-bottom: 16px;
+        }
+
+        .message-section-title {
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 8px;
+        }
+
+        .message-list {
+            padding-left: 20px;
+        }
+
+        .message-list li {
+            margin-bottom: 6px;
+            color: #4a5568;
+        }
+
+        .case-reference {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-input-area {
+            border-top: 1px solid #e2e8f0;
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            resize: none;
+            min-height: 48px;
+            max-height: 120px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #2d5a87;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .quick-btn {
+            padding: 6px 12px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #ebf8ff;
+            border-color: #2d5a87;
+            color: #2d5a87;
+        }
+
+        /* ========== 案件管理页面 ========== */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #2d5a87;
+            color: white;
+            border-color: #2d5a87;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 300px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 16px 8px 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .case-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .case-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .case-item:hover {
+            border-color: #2d5a87;
+            box-shadow: 0 4px 12px rgba(45, 90, 135, 0.1);
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .case-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a365d;
+        }
+
+        .case-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-arbitration {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-court {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-closed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .case-meta {
+            display: flex;
+            gap: 24px;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .case-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .case-action-btn {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .case-action-btn:hover {
+            background: #ebf8ff;
+            border-color: #2d5a87;
+        }
+
+        /* ========== 案件详情页面 ========== */
+        .case-detail-header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .case-detail-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 8px;
+        }
+
+        .case-detail-meta {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: #f7fafc;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2d5a87;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-group {
+            margin-bottom: 16px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #1a365d;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -20px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            background: #2d5a87;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+
+        .timeline-content {
+            font-size: 14px;
+            color: #1a365d;
+        }
+
+        .ai-analysis {
+            background: linear-gradient(135deg, #ebf8ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .analysis-section {
+            margin-bottom: 16px;
+        }
+
+        .analysis-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .analysis-list {
+            padding-left: 20px;
+        }
+
+        .analysis-list li {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .win-probability {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .probability-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2d5a87;
+        }
+
+        .probability-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        /* ========== 文书中心页面 ========== */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .template-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .template-card:hover {
+            border-color: #2d5a87;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(45, 90, 135, 0.1);
+        }
+
+        .template-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .template-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a365d;
+            margin-bottom: 8px;
+        }
+
+        .template-desc {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .template-rating {
+            margin-top: 8px;
+            color: #f59e0b;
+        }
+
+        .recent-docs {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .doc-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f7fafc;
+        }
+
+        .doc-item:last-child {
+            border-bottom: none;
+        }
+
+        .doc-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .doc-icon {
+            font-size: 24px;
+        }
+
+        .doc-name {
+            font-size: 14px;
+            color: #1a365d;
+        }
+
+        .doc-meta {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* ========== 知识库页面 ========== */
+        .kb-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 20px;
+        }
+
+        .kb-sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .kb-search {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .kb-category {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+
+        .kb-category:hover {
+            background: #f7fafc;
+        }
+
+        .kb-category.active {
+            background: #ebf8ff;
+            color: #2d5a87;
+            font-weight: 500;
+        }
+
+        .kb-category-icon {
+            margin-right: 8px;
+        }
+
+        .kb-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .law-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .law-item:hover {
+            border-color: #2d5a87;
+            background: #f7fafc;
+        }
+
+        .law-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a365d;
+            margin-bottom: 8px;
+        }
+
+        .law-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* ========== 计算器页面 ========== */
+        .calculator-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .calc-type-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .calc-type-btn {
+            padding: 10px 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .calc-type-btn.active {
+            background: #2d5a87;
+            color: white;
+            border-color: #2d5a87;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2d5a87;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .calc-result {
+            background: linear-gradient(135deg, #ebf8ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .result-title {
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 16px;
+        }
+
+        .result-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2d5a87;
+            margin-bottom: 8px;
+        }
+
+        .result-unit {
+            font-size: 16px;
+            color: #718096;
+        }
+
+        .result-detail {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(45, 90, 135, 0.2);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .result-row-label {
+            color: #4a5568;
+        }
+
+        .result-row-value {
+            color: #1a365d;
+            font-weight: 500;
+        }
+
+        .result-basis {
+            margin-top: 16px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .result-basis-title {
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 8px;
+        }
+
+        /* AI悬浮助手 */
+        .ai-assistant-float {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #2d5a87 0%, #1a365d 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(45, 90, 135, 0.3);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .ai-assistant-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(45, 90, 135, 0.4);
+        }
+
+        .ai-assistant-float span {
+            font-size: 24px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .calculator-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .kb-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">⚖️</div>
+            <span>律师AI助手</span>
+            <span style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; margin-left: 8px;">劳动法专业版</span>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="avatar">李</div>
+                <span>李律师</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体内容 -->
+    <div class="main-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <nav class="nav-menu">
+                <div class="nav-item active" data-page="consultation">
+                    <span class="nav-icon">💬</span>
+                    <span>智能咨询</span>
+                </div>
+                <div class="nav-item" data-page="cases">
+                    <span class="nav-icon">📁</span>
+                    <span>案件管理</span>
+                </div>
+                <div class="nav-item" data-page="documents">
+                    <span class="nav-icon">📝</span>
+                    <span>文书中心</span>
+                </div>
+                <div class="nav-item" data-page="knowledge">
+                    <span class="nav-icon">📚</span>
+                    <span>知识库</span>
+                </div>
+                <div class="nav-item" data-page="calculator">
+                    <span class="nav-icon">🧮</span>
+                    <span>赔偿计算</span>
+                </div>
+                <div class="nav-item" data-page="casesearch">
+                    <span class="nav-icon">🔍</span>
+                    <span>案例检索</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 内容区 -->
+        <main class="content">
+            <!-- 智能咨询页面 -->
+            <div id="consultation" class="page active">
+                <div class="page-header">
+                    <h1 class="page-title">💬 智能咨询</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">历史记录</button>
+                        <button class="btn btn-primary">+ 新建会话</button>
+                    </div>
+                </div>
+                <div class="card chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message user">
+                            <div class="message-avatar">🧑‍💼</div>
+                            <div class="message-content">
+                                <div class="message-label">律师</div>
+                                <div class="message-text">
+                                    用户申请劳动仲裁，主张违法解除赔偿金，公司辩称严重违纪解除，但只有一份口头警告记录，请问胜诉概率？
+                                </div>
+                            </div>
+                        </div>
+                        <div class="message ai">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-content">
+                                <div class="message-label">AI助手</div>
+                                <div class="message-text">
+                                    <div class="message-section">
+                                        <div class="message-section-title">【法律依据】</div>
+                                        <ul class="message-list">
+                                            <li>《劳动合同法》第39条：劳动者严重违纪，用人单位可单方解除</li>
+                                            <li>《劳动合同法》第48条：违法解除的救济途径</li>
+                                        </ul>
+                                    </div>
+                                    <div class="message-section">
+                                        <div class="message-section-title">【关键事实分析】</div>
+                                        <ul class="message-list">
+                                            <li>1. 口头警告记录证明力较弱</li>
+                                            <li>2. 需确认公司规章制度是否经过民主程序</li>
+                                            <li>3. 需核实解除通知是否送达及送达方式</li>
+                                        </ul>
+                                    </div>
+                                    <div class="message-section">
+                                        <div class="message-section-title">【胜诉概率评估】⭐⭐⭐⭐ (较高)</div>
+                                        <p>理由：用人单位负举证责任，仅有口头警告难以证明"严重违纪"</p>
+                                    </div>
+                                    <div class="message-section">
+                                        <div class="message-section-title">【类似案例参考】</div>
+                                        <div class="case-reference">
+                                            📄 (2023)沪01民终12345号 - 支持劳动者
+                                        </div>
+                                        <div class="case-reference">
+                                            📄 (2022)京02民终6789号 - 支持劳动者
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 16px; display: flex; gap: 8px;">
+                                        <button class="btn btn-secondary" style="font-size: 12px;">查看完整案例分析</button>
+                                        <button class="btn btn-secondary" style="font-size: 12px;">导出备忘录</button>
+                                        <button class="btn btn-primary" style="font-size: 12px;">创建新案件</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="chat-input-wrapper">
+                            <textarea class="chat-input" placeholder="输入您的问题..." rows="1"></textarea>
+                            <button class="btn btn-secondary">📎 附件</button>
+                            <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-btn">违法解除认定</button>
+                            <button class="quick-btn">工伤赔偿计算</button>
+                            <button class="quick-btn">加班费举证</button>
+                            <button class="quick-btn">年假折算</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 案件管理页面 -->
+            <div id="cases" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📁 案件管理</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">导入</button>
+                        <button class="btn btn-primary">+ 新建案件</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="filter-bar">
+                            <button class="filter-btn active">全部</button>
+                            <button class="filter-btn">进行中</button>
+                            <button class="filter-btn">已结案</button>
+                            <button class="filter-btn">待立案</button>
+                            <div class="search-box">
+                                <input type="text" placeholder="搜索案件...">
+                            </div>
+                        </div>
+                        <div class="case-list">
+                            <div class="case-item" onclick="showCaseDetail()">
+                                <div class="case-header">
+                                    <div class="case-title">📋 张三 vs 某科技公司 - 违法解除劳动争议</div>
+                                    <span class="case-status status-arbitration">🔵 仲裁阶段</span>
+                                </div>
+                                <div class="case-meta">
+                                    <span>案号: (2024)沪0101民初12345号</span>
+                                    <span>当事人: 张三(劳动者)</span>
+                                    <span>标的: 15万元</span>
+                                    <span>下一步: 举证期</span>
+                                </div>
+                                <div class="case-meta">
+                                    <span>办案律师: 李律师</span>
+                                    <span>最后更新: 2024-01-15</span>
+                                </div>
+                                <div class="case-actions">
+                                    <button class="case-action-btn">进入案件</button>
+                                    <button class="case-action-btn">AI分析</button>
+                                    <button class="case-action-btn">更多</button>
+                                </div>
+                            </div>
+                            <div class="case-item">
+                                <div class="case-header">
+                                    <div class="case-title">📋 李四 vs 某贸易公司 - 工伤赔偿纠纷</div>
+                                    <span class="case-status status-court">🟢 一审阶段</span>
+                                </div>
+                                <div class="case-meta">
+                                    <span>案号: (2024)沪0105民初6789号</span>
+                                    <span>当事人: 李四(劳动者)</span>
+                                    <span>标的: 28万元</span>
+                                    <span>下一步: 开庭</span>
+                                </div>
+                                <div class="case-meta">
+                                    <span>办案律师: 王律师</span>
+                                    <span>最后更新: 2024-01-14</span>
+                                </div>
+                                <div class="case-actions">
+                                    <button class="case-action-btn">进入案件</button>
+                                    <button class="case-action-btn">AI分析</button>
+                                    <button class="case-action-btn">更多</button>
+                                </div>
+                            </div>
+                            <div class="case-item">
+                                <div class="case-header">
+                                    <div class="case-title">📋 王五 vs 某制造公司 - 加班费争议</div>
+                                    <span class="case-status status-closed">✅ 已结案</span>
+                                </div>
+                                <div class="case-meta">
+                                    <span>案号: (2023)沪0102民初3456号</span>
+                                    <span>当事人: 王五(劳动者)</span>
+                                    <span>标的: 8.5万元</span>
+                                    <span>结果: 胜诉</span>
+                                </div>
+                                <div class="case-meta">
+                                    <span>办案律师: 李律师</span>
+                                    <span>结案日期: 2023-12-20</span>
+                                </div>
+                                <div class="case-actions">
+                                    <button class="case-action-btn">查看详情</button>
+                                    <button class="case-action-btn">复制案件</button>
+                                    <button class="case-action-btn">更多</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 案件详情页面 -->
+            <div id="case-detail" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📋 张三 vs 某科技公司 - 违法解除劳动争议</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">编辑</button>
+                        <button class="btn btn-primary">🤖 AI助手</button>
+                    </div>
+                </div>
+                <div class="case-detail-header">
+                    <div class="case-detail-title">案号: (2024)沪0101民初12345号</div>
+                    <div class="case-detail-meta">创建于 2024-01-10 · 最后更新于 2024-01-15</div>
+                </div>
+                <div class="tabs">
+                    <div class="tab active">基本信息</div>
+                    <div class="tab">时间线</div>
+                    <div class="tab">证据管理</div>
+                    <div class="tab">文书列表</div>
+                    <div class="tab">AI分析</div>
+                </div>
+                <div class="detail-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">案件基本信息</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-group">
+                                <div class="info-label">案由</div>
+                                <div class="info-value">违法解除劳动争议</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">当事人角色</div>
+                                <div class="info-value">劳动者</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">标的金额</div>
+                                <div class="info-value">150,000元</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">争议焦点</div>
+                                <div class="info-value">
+                                    1. 是否构成违法解除<br>
+                                    2. 赔偿金计算标准<br>
+                                    3. 加班费是否应支持
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">办案律师</div>
+                                <div class="info-value">李律师</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">案件状态</div>
+                                <div class="info-value"><span class="case-status status-arbitration">仲裁阶段</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">案件时间线</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-date">2024-01-15</div>
+                                    <div class="timeline-content">举证期限届满</div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-date">2024-01-10</div>
+                                    <div class="timeline-content">提交仲裁申请</div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-date">2024-01-05</div>
+                                    <div class="timeline-content">解除劳动合同</div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-date">2020-06-01</div>
+                                    <div class="timeline-content">入职</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" style="font-size: 12px;">+ 添加事件</button>
+                                <button class="btn btn-primary" style="font-size: 12px;">AI梳理时间线</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-analysis">
+                    <div class="analysis-section">
+                        <div class="analysis-title">✅ 案件优势</div>
+                        <ul class="analysis-list">
+                            <li style="color: #166534;">公司规章制度未经民主程序，解除依据不足</li>
+                            <li style="color: #166534;">考勤记录显示无旷工行为</li>
+                            <li style="color: #166534;">有录音证明解除时未说明具体理由</li>
+                        </ul>
+                    </div>
+                    <div class="analysis-section">
+                        <div class="analysis-title">⚠️ 案件风险</div>
+                        <ul class="analysis-list">
+                            <li style="color: #92400e;">加班费主张缺乏加班审批记录</li>
+                            <li style="color: #92400e;">年休假已休部分需进一步核实</li>
+                        </ul>
+                    </div>
+                    <div class="analysis-section">
+                        <div class="analysis-title">💡 建议策略</div>
+                        <ul class="analysis-list">
+                            <li>1. 重点收集公司规章制度公示证据</li>
+                            <li>2. 补充收集领导安排加班的聊天记录</li>
+                            <li>3. 申请证人出庭作证</li>
+                        </ul>
+                    </div>
+                    <div class="win-probability" style="margin-top: 16px;">
+                        <div class="probability-value">78%</div>
+                        <div class="probability-label">胜诉概率（基于127件相似案例）</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文书中心页面 -->
+            <div id="documents" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📝 文书中心</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">模板管理</button>
+                        <button class="btn btn-primary">+ 新建文书</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h3 style="margin-bottom: 16px; color: #1a365d;">快速创建</h3>
+                        <div class="calc-type-selector">
+                            <button class="calc-type-btn active">仲裁申请书</button>
+                            <button class="calc-type-btn">起诉状</button>
+                            <button class="calc-type-btn">答辩状</button>
+                            <button class="calc-type-btn">律师函</button>
+                            <button class="calc-type-btn">和解协议</button>
+                        </div>
+                        <h3 style="margin: 24px 0 16px; color: #1a365d;">文书模板库</h3>
+                        <div class="template-grid">
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">劳动争议仲裁申请书</div>
+                                <div class="template-desc">标准格式模板</div>
+                                <div class="template-rating">⭐⭐⭐⭐⭐</div>
+                            </div>
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">违法解除起诉状</div>
+                                <div class="template-desc">一审起诉模板</div>
+                                <div class="template-rating">⭐⭐⭐⭐</div>
+                            </div>
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">劳动争议答辩状</div>
+                                <div class="template-desc">答辩模板</div>
+                                <div class="template-rating">⭐⭐⭐⭐⭐</div>
+                            </div>
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">律师催告函</div>
+                                <div class="template-desc">催告函模板</div>
+                                <div class="template-rating">⭐⭐⭐⭐</div>
+                            </div>
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">和解协议书</div>
+                                <div class="template-desc">标准模板</div>
+                                <div class="template-rating">⭐⭐⭐⭐</div>
+                            </div>
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">证据清单</div>
+                                <div class="template-desc">证据整理模板</div>
+                                <div class="template-rating">⭐⭐⭐⭐⭐</div>
+                            </div>
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">代理词</div>
+                                <div class="template-desc">庭审模板</div>
+                                <div class="template-rating">⭐⭐⭐⭐</div>
+                            </div>
+                            <div class="template-card">
+                                <div class="template-icon">📄</div>
+                                <div class="template-name">强制执行申请书</div>
+                                <div class="template-desc">执行模板</div>
+                                <div class="template-rating">⭐⭐⭐</div>
+                            </div>
+                        </div>
+                        <h3 style="margin: 24px 0 16px; color: #1a365d;">近期文书</h3>
+                        <div class="recent-docs">
+                            <div class="doc-item">
+                                <div class="doc-info">
+                                    <span class="doc-icon">📄</span>
+                                    <div>
+                                        <div class="doc-name">张三-仲裁申请书-2024-01-15.docx</div>
+                                        <div class="doc-meta">李律师 · 2小时前编辑</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary" style="font-size: 12px;">编辑</button>
+                            </div>
+                            <div class="doc-item">
+                                <div class="doc-info">
+                                    <span class="doc-icon">📄</span>
+                                    <div>
+                                        <div class="doc-name">李四-律师函-2024-01-14.docx</div>
+                                        <div class="doc-meta">王律师 · 昨天</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary" style="font-size: 12px;">编辑</button>
+                            </div>
+                            <div class="doc-item">
+                                <div class="doc-info">
+                                    <span class="doc-icon">📄</span>
+                                    <div>
+                                        <div class="doc-name">王五-和解协议-2024-01-13.docx</div>
+                                        <div class="doc-meta">李律师 · 2天前</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary" style="font-size: 12px;">编辑</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识库页面 -->
+            <div id="knowledge" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📚 知识库</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">上传</button>
+                        <button class="btn btn-primary">+ 新建</button>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab active">法规库</div>
+                    <div class="tab">案例库</div>
+                    <div class="tab">内部知识</div>
+                    <div class="tab">常用模板</div>
+                    <div class="tab">学习资源</div>
+                </div>
+                <div class="kb-layout">
+                    <div class="kb-sidebar">
+                        <input type="text" class="kb-search" placeholder="搜索知识库...">
+                        <div class="kb-category active">
+                            <span class="kb-category-icon">📁</span>劳动法规
+                        </div>
+                        <div class="kb-category" style="padding-left: 28px;">
+                            <span class="kb-category-icon">├</span>劳动合同法
+                        </div>
+                        <div class="kb-category" style="padding-left: 28px;">
+                            <span class="kb-category-icon">├</span>劳动争议调解仲裁
+                        </div>
+                        <div class="kb-category" style="padding-left: 28px;">
+                            <span class="kb-category-icon">├</span>工伤保险条例
+                        </div>
+                        <div class="kb-category" style="padding-left: 28px;">
+                            <span class="kb-category-icon">└</span>职工带薪年休假
+                        </div>
+                        <div class="kb-category">
+                            <span class="kb-category-icon">📁</span>地方法规
+                        </div>
+                        <div class="kb-category">
+                            <span class="kb-category-icon">📁</span>司法解释
+                        </div>
+                        <div class="kb-category">
+                            <span class="kb-category-icon">📁</span>内部案例
+                        </div>
+                        <div class="kb-category">
+                            <span class="kb-category-icon">📁</span>办案经验
+                        </div>
+                    </div>
+                    <div class="kb-content">
+                        <h3 style="margin-bottom: 20px; color: #1a365d;">热门法规</h3>
+                        <div class="law-item">
+                            <div class="law-title">📜 中华人民共和国劳动合同法</div>
+                            <div class="law-meta">
+                                <span>最新修订: 2012-12-28</span>
+                                <span>引用次数: 1,234次</span>
+                            </div>
+                        </div>
+                        <div class="law-item">
+                            <div class="law-title">📜 工伤保险条例</div>
+                            <div class="law-meta">
+                                <span>最新修订: 2010-12-20</span>
+                                <span>引用次数: 892次</span>
+                            </div>
+                        </div>
+                        <div class="law-item">
+                            <div class="law-title">📜 中华人民共和国劳动争议调解仲裁法</div>
+                            <div class="law-meta">
+                                <span>发布日期: 2007-12-29</span>
+                                <span>引用次数: 756次</span>
+                            </div>
+                        </div>
+                        <div class="law-item">
+                            <div class="law-title">📜 职工带薪年休假条例</div>
+                            <div class="law-meta">
+                                <span>发布日期: 2007-12-14</span>
+                                <span>引用次数: 543次</span>
+                            </div>
+                        </div>
+                        <h3 style="margin: 24px 0 20px; color: #1a365d;">近期添加</h3>
+                        <div class="law-item">
+                            <div class="law-title">📄 最高院劳动争议司法解释(五)</div>
+                            <div class="law-meta">
+                                <span>添加于: 2024-01-10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 赔偿计算器页面 -->
+            <div id="calculator" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🧮 劳动争议赔偿计算器</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">历史记录</button>
+                        <button class="btn btn-primary">保存结果</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="calc-type-selector">
+                            <button class="calc-type-btn active">违法解除赔偿</button>
+                            <button class="calc-type-btn">加班费</button>
+                            <button class="calc-type-btn">工伤赔偿</button>
+                            <button class="calc-type-btn">年休假工资</button>
+                            <button class="calc-type-btn">二倍工资</button>
+                        </div>
+                        <div class="calculator-layout">
+                            <div>
+                                <h3 style="margin-bottom: 20px; color: #1a365d;">基本信息</h3>
+                                <div class="form-group">
+                                    <label class="form-label">入职日期</label>
+                                    <input type="date" class="form-input" value="2020-06-01">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">解除日期</label>
+                                    <input type="date" class="form-input" value="2024-01-15">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">工作年限</label>
+                                    <input type="text" class="form-input" value="3年7个月" readonly style="background: #f7fafc;">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">月工资标准（元）</label>
+                                    <input type="number" class="form-input" value="15000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">工资构成</label>
+                                    <div class="form-row">
+                                        <input type="number" class="form-input" placeholder="基本工资" value="8000">
+                                        <input type="number" class="form-input" placeholder="绩效工资" value="5000">
+                                        <input type="number" class="form-input" placeholder="补贴" value="2000">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">解除前12个月平均工资（元）</label>
+                                    <input type="number" class="form-input" value="16500">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">所在城市</label>
+                                    <select class="form-input">
+                                        <option>上海市</option>
+                                        <option>北京市</option>
+                                        <option>广州市</option>
+                                        <option>深圳市</option>
+                                    </select>
+                                </div>
+                                <h3 style="margin: 24px 0 16px; color: #1a365d;">高级选项</h3>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" checked> 存在高薪封顶情形（三倍社平工资）
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox"> 协商解除（需支付经济补偿）
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox"> 已支付经济补偿
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="calc-result">
+                                    <div class="result-title">【计算结果】</div>
+                                    <div style="margin-bottom: 20px;">
+                                        <div style="font-size: 14px; color: #4a5568; margin-bottom: 8px;">工作年限: 3年7个月 → 按4年计算</div>
+                                        <div style="font-size: 14px; color: #4a5568; margin-bottom: 8px;">经济补偿金 = 16,500 × 4 = 66,000 元</div>
+                                        <div style="font-size: 14px; color: #4a5568;">违法解除赔偿金 = 经济补偿金 × 2</div>
+                                    </div>
+                                    <div class="result-value">132,000</div>
+                                    <div class="result-unit">元</div>
+                                    <div class="result-detail">
+                                        <div class="result-row">
+                                            <span class="result-row-label">经济补偿金</span>
+                                            <span class="result-row-value">66,000 元</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-row-label">赔偿倍数</span>
+                                            <span class="result-row-value">2倍</span>
+                                        </div>
+                                        <div class="result-row" style="border-top: 1px solid rgba(45, 90, 135, 0.2); padding-top: 8px; margin-top: 8px;">
+                                            <span class="result-row-label" style="font-weight: 600;">合计应得赔偿</span>
+                                            <span class="result-row-value" style="font-size: 18px; color: #2d5a87;">132,000 元</span>
+                                        </div>
+                                    </div>
+                                    <div class="result-basis">
+                                        <div class="result-basis-title">📋 计算依据</div>
+                                        <ul style="padding-left: 16px; line-height: 1.8;">
+                                            <li>《劳动合同法》第47条: 经济补偿按年限计算</li>
+                                            <li>《劳动合同法》第87条: 违法解除双倍赔偿</li>
+                                            <li>2023年上海社平工资: 12,183元/月</li>
+                                            <li>工资未超三倍社平工资，不适用高薪封顶</li>
+                                        </ul>
+                                    </div>
+                                    <div style="margin-top: 20px; display: flex; gap: 12px;">
+                                        <button class="btn btn-primary" style="flex: 1;">一键生成计算说明</button>
+                                        <button class="btn btn-secondary" style="flex: 1;">插入文书</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 案例检索页面 -->
+            <div id="casesearch" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🔍 案例检索</h1>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                            <input type="text" class="form-input" style="flex: 1;" placeholder="输入关键词搜索案例..." value="违法解除 仅口头警告 严重违纪">
+                            <button class="btn btn-primary">搜索</button>
+                        </div>
+                        <div class="filter-bar" style="margin-bottom: 20px;">
+                            <select class="form-input" style="width: auto;">
+                                <option>案由</option>
+                                <option>劳动争议</option>
+                                <option>劳动合同纠纷</option>
+                            </select>
+                            <select class="form-input" style="width: auto;">
+                                <option>法院层级</option>
+                                <option>最高人民法院</option>
+                                <option>高级人民法院</option>
+                                <option>中级人民法院</option>
+                            </select>
+                            <select class="form-input" style="width: auto;">
+                                <option>审理程序</option>
+                                <option>一审</option>
+                                <option>二审</option>
+                            </select>
+                            <select class="form-input" style="width: auto;">
+                                <option>年份</option>
+                                <option>2024</option>
+                                <option>2023</option>
+                            </select>
+                            <select class="form-input" style="width: auto;">
+                                <option>裁判结果</option>
+                                <option>劳动者胜诉</option>
+                                <option>用人单位胜诉</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px; color: #718096;">找到 <strong style="color: #1a365d;">127</strong> 个相关案例</div>
+
+                        <div class="case-item">
+                            <div class="case-header">
+                                <div class="case-title">(2023)沪01民终12345号</div>
+                                <span class="case-status status-closed">劳动者胜诉</span>
+                            </div>
+                            <div style="font-size: 14px; color: #1a365d; margin-bottom: 8px;">张三与某科技公司劳动争议纠纷二审民事判决书</div>
+                            <div class="case-meta">
+                                <span>案由: 劳动争议</span>
+                                <span>程序: 二审</span>
+                                <span>法院: 上海市第一中级人民法院</span>
+                                <span>日期: 2023-08-15</span>
+                            </div>
+                            <div style="margin-top: 12px; padding: 12px; background: #f7fafc; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #718096; margin-bottom: 6px;">争议焦点</div>
+                                <div style="font-size: 14px; color: #4a5568;">用人单位以劳动者严重违纪为由解除劳动合同，但仅有口头警告记录，是否构成违法解除</div>
+                            </div>
+                            <div style="margin-top: 12px; padding: 12px; background: #f7fafc; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #718096; margin-bottom: 6px;">裁判要点</div>
+                                <div style="font-size: 14px; color: #4a5568;">法院认为，用人单位主张劳动者严重违纪，应当承担举证责任。本案中，公司仅提供口头警告记录，无书面规章制度、无违纪通知送达证据，不足以证明劳动者存在严重违纪行为，应承担举证不能的不利后果，构成违法解除。</div>
+                            </div>
+                            <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="color: #718096;">相似度: <span style="color: #2d5a87; font-weight: 600;">85%</span></div>
+                                <div class="case-actions">
+                                    <button class="case-action-btn">查看全文</button>
+                                    <button class="case-action-btn">添加到案件</button>
+                                    <button class="case-action-btn">引用到文书</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="case-item">
+                            <div class="case-header">
+                                <div class="case-title">(2022)京02民终6789号</div>
+                                <span class="case-status status-closed">劳动者胜诉</span>
+                            </div>
+                            <div style="font-size: 14px; color: #1a365d; margin-bottom: 8px;">李四与某贸易公司劳动争议纠纷二审民事判决书</div>
+                            <div class="case-meta">
+                                <span>案由: 劳动争议</span>
+                                <span>程序: 二审</span>
+                                <span>法院: 北京市第二中级人民法院</span>
+                                <span>日期: 2022-11-20</span>
+                            </div>
+                            <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="color: #718096;">相似度: <span style="color: #2d5a87; font-weight: 600;">82%</span></div>
+                                <div class="case-actions">
+                                    <button class="case-action-btn">查看全文</button>
+                                    <button class="case-action-btn">添加到案件</button>
+                                    <button class="case-action-btn">引用到文书</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI悬浮助手 -->
+    <div class="ai-assistant-float" title="AI助手">
+        <span>🤖</span>
+    </div>
+
+    <script>
+        // 页面切换
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 移除所有active
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+
+                // 添加active
+                this.classList.add('active');
+                const pageId = this.dataset.page;
+                document.getElementById(pageId).classList.add('active');
+            });
+        });
+
+        // Tab切换
+        document.querySelectorAll('.tabs').forEach(tabContainer => {
+            tabContainer.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        // 筛选按钮切换
+        document.querySelectorAll('.filter-bar').forEach(filterBar => {
+            filterBar.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        // 计算类型切换
+        document.querySelectorAll('.calc-type-selector').forEach(selector => {
+            selector.querySelectorAll('.calc-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selector.querySelectorAll('.calc-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        // 知识库分类切换
+        document.querySelectorAll('.kb-category').forEach(category => {
+            category.addEventListener('click', function() {
+                document.querySelectorAll('.kb-category').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 发送消息
+        function sendMessage() {
+            const input = document.querySelector('.chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+
+            // 添加用户消息
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.innerHTML = `
+                <div class="message-avatar">🧑‍💼</div>
+                <div class="message-content">
+                    <div class="message-label">律师</div>
+                    <div class="message-text">${message}</div>
+                </div>
+            `;
+            chatMessages.appendChild(userMsg);
+
+            // 清空输入
+            input.value = '';
+
+            // 模拟AI回复
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'message ai';
+                aiMsg.innerHTML = `
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-label">AI助手</div>
+                        <div class="message-text">
+                            <div class="message-section">
+                                <div class="message-section-title">【分析中】</div>
+                                <p>正在为您分析问题，请稍候...</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(aiMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 500);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 显示案件详情
+        function showCaseDetail() {
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById('case-detail').classList.add('active');
+        }
+
+        // 回车发送消息
+        document.querySelector('.chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

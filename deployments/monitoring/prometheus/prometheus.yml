@@ -1,0 +1,65 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'lawyer-ai-monitor'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  # Prometheus自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: 'prometheus'
+
+  # Spring Boot应用监控
+  - job_name: 'lawyer-api'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['lawyer-api:8080']
+        labels:
+          instance: 'lawyer-api'
+          application: 'lawyer-ai-backend'
+
+  # AI服务监控
+  - job_name: 'ai-service'
+    static_configs:
+      - targets: ['ai-service:8001']
+        labels:
+          instance: 'ai-service'
+          application: 'lawyer-ai-service'
+
+  # PostgreSQL监控 (需要postgres_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres_exporter:9187']
+        labels:
+          instance: 'postgres'
+
+  # Redis监控 (需要redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis_exporter:9121']
+        labels:
+          instance: 'redis'
+
+  # Milvus监控
+  - job_name: 'milvus'
+    static_configs:
+      - targets: ['milvus:9091']
+        labels:
+          instance: 'milvus'
+
+  # Nginx监控 (需要nginx-prometheus-exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx_exporter:9113']
+        labels:
+          instance: 'nginx'

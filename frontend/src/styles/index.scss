@@ -1,0 +1,250 @@
+@import './variables.scss';
+
+// 重置样式
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-size: $font-size-base;
+  color: $text-primary;
+  background-color: $bg-page;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #909399;
+}
+
+// 链接样式
+a {
+  color: $primary-color;
+  text-decoration: none;
+
+  &:hover {
+    color: $primary-light-color;
+  }
+}
+
+// 卡片样式
+.card {
+  background: $bg-color;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow-light;
+  padding: $spacing-md;
+}
+
+// 页面容器
+.page-container {
+  padding: $spacing-md;
+  min-height: calc(100vh - #{$header-height} - #{$footer-height});
+}
+
+// 页面标题
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  .page-title {
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+// 搜索栏
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  padding: $spacing-md;
+  background: $bg-color;
+  border-radius: $border-radius;
+}
+
+// 表格容器
+.table-container {
+  background: $bg-color;
+  border-radius: $border-radius;
+  padding: $spacing-md;
+}
+
+// 分页
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $spacing-md;
+}
+
+// 表单样式
+.form-section {
+  margin-bottom: $spacing-lg;
+
+  .section-title {
+    font-size: $font-size-md;
+    font-weight: 600;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-sm;
+    border-bottom: 1px solid $border-lighter;
+  }
+}
+
+// 状态标签
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: $border-radius-small;
+  font-size: $font-size-xs;
+
+  &.success {
+    background: rgba($success-color, 0.1);
+    color: $success-color;
+  }
+
+  &.warning {
+    background: rgba($warning-color, 0.1);
+    color: $warning-color;
+  }
+
+  &.danger {
+    background: rgba($danger-color, 0.1);
+    color: $danger-color;
+  }
+
+  &.info {
+    background: rgba($info-color, 0.1);
+    color: $info-color;
+  }
+}
+
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2;
+  color: $text-secondary;
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: $spacing-md;
+  }
+
+  .empty-text {
+    font-size: $font-size-base;
+  }
+}
+
+// 加载状态
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+// 工具提示
+.tooltip-content {
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+// 对话框样式优化
+.el-dialog {
+  .el-dialog__header {
+    border-bottom: 1px solid $border-lighter;
+  }
+
+  .el-dialog__body {
+    padding: $spacing-lg;
+  }
+
+  .el-dialog__footer {
+    border-top: 1px solid $border-lighter;
+  }
+}
+
+// Element Plus 组件样式覆盖
+.el-menu {
+  border-right: none !important;
+}
+
+.el-table {
+  .el-table__header {
+    th {
+      background-color: $bg-page !important;
+    }
+  }
+}
+
+.el-form-item__label {
+  font-weight: 500;
+}
+
+// 动画效果
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity $transition-duration $transition-timing;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all $transition-duration $transition-timing;
+}
+
+.slide-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+// 响应式
+@media (max-width: 768px) {
+  .page-container {
+    padding: $spacing-sm;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+}

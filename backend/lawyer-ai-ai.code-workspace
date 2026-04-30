@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../lawyer-ai-ai"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../lawyer-ai-frontend"
+		},
+		{
+			"path": "../lawyer-ai-prototype"
+		}
+	]
+}
