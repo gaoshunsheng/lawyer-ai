@@ -1,0 +1,39 @@
+主要文件：
+===========
+1. README.md - 项目说明
+2. LICENSE - MIT许可证
+3. CONTRIBUTING.md - 贡献指南
+4. .gitignore - Git忽略配置
+
+目录结构：
+===========
+.
+./.git
+./.git/hooks
+./.git/info
+./.git/logs
+./.git/logs/refs
+./.git/logs/refs/heads
+./.git/objects
+./.git/objects/00
+./.git/objects/01
+./.git/objects/02
+./.git/objects/03
+./.git/objects/04
+./.git/objects/05
+./.git/objects/06
+./.git/objects/07
+./.git/objects/08
+./.git/objects/0a
+./.git/objects/0b
+./.git/objects/0c
+./.git/objects/0d
+./.git/objects/0e
+./.git/objects/10
+./.git/objects/11
+./.git/objects/13
+./.git/objects/14
+./.git/objects/15
+./.git/objects/17
+./.git/objects/18
+./.git/objects/19
