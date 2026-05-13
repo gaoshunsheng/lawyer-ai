@@ -29,3 +29,5 @@ class ChatMessage(Base, BaseMixin):
     content: Mapped[str] = mapped_column(Text)
     tokens_used: Mapped[int | None] = mapped_column(Integer)
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB)
+
+    session: Mapped[ChatSession] = relationship(back_populates="messages")
