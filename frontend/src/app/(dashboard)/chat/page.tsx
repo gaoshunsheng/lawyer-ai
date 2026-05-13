@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api-client";
+import { useAuth } from "@/providers/auth-provider";
 import { ChatInterface } from "@/components/chat/chat-interface";
 
 interface Session {
@@ -12,35 +14,30 @@ interface Session {
 export default function ChatPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const { token } = useAuth();
+
+  const fetchSessions = useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await api.get<Session[]>("/chat/sessions", token);
+      setSessions(data);
+    } catch {
+      console.error("获取会话列表失败");
+    }
+  }, [token]);
 
   useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const res = await fetch("/api/v1/chat/sessions");
-        const data = await res.json();
-        setSessions(data);
-        if (data.length > 0 && !activeSessionId) {
-          setActiveSessionId(data[0].id);
-        }
-      } catch {
-        console.error("获取会话列表失败");
-      }
-    };
     fetchSessions();
-  }, [activeSessionId]);
+  }, [fetchSessions]);
 
   const createNewSession = async () => {
+    if (!token) return;
     try {
-      const res = await fetch("/api/v1/chat/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "新对话" }),
-      });
-      const session = await res.json();
+      const session = await api.post<Session>("/chat/sessions", { title: "新对话" }, token);
       setSessions((prev) => [session, ...prev]);
       setActiveSessionId(session.id);
-    } catch {
-      console.error("创建会话失败");
+    } catch (err) {
+      console.error("创建会话失败:", err);
     }
   };
 
@@ -74,7 +71,7 @@ export default function ChatPage() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
         {activeSessionId ? (
-          <ChatInterface sessionId={activeSessionId} />
+          <ChatInterface sessionId={activeSessionId} token={token} />
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             点击「新对话」开始咨询

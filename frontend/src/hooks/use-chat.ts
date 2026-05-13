@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef } from "react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
 interface Message {
   id: string;
   role: "user" | "assistant" | "system";
@@ -9,18 +11,20 @@ interface Message {
   created_at: string;
 }
 
-export function useChat(sessionId: string | null, token?: string) {
+export function useChat(sessionId: string | null, token?: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
+  const authHeaders = () => (token ? { Authorization: `Bearer ${token}` } : {});
+
   const loadMessages = useCallback(async () => {
-    if (!sessionId) return;
+    if (!sessionId || !token) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/v1/chat/sessions/${sessionId}/messages`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      const res = await fetch(`${API_BASE}/chat/sessions/${sessionId}/messages`, {
+        headers: { ...authHeaders() },
       });
       const data = await res.json();
       setMessages(data);
@@ -33,7 +37,7 @@ export function useChat(sessionId: string | null, token?: string) {
 
   const sendMessage = useCallback(
     async (content: string) => {
-      if (!sessionId || !content.trim()) return;
+      if (!sessionId || !content.trim() || !token) return;
 
       const userMsg: Message = {
         id: Date.now().toString(),
@@ -52,11 +56,11 @@ export function useChat(sessionId: string | null, token?: string) {
 
       try {
         abortRef.current = new AbortController();
-        const res = await fetch(`/api/v1/chat/sessions/${sessionId}/messages`, {
+        const res = await fetch(`${API_BASE}/chat/sessions/${sessionId}/messages`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...authHeaders(),
           },
           body: JSON.stringify({ content }),
           signal: abortRef.current.signal,
