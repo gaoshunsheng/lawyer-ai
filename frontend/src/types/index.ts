@@ -121,3 +121,72 @@ export interface FeedbackRequest {
   practical_value_score?: number;
   text_feedback?: string;
 }
+
+export interface PersonInfo {
+  name: string;
+  id_number: string;
+  contact: string;
+}
+
+export interface CaseItem {
+  id: string;
+  case_number: string;
+  title: string;
+  case_type: string;
+  status: string;
+  plaintiff: PersonInfo;
+  defendant: PersonInfo;
+  claim_amount: number | null;
+  dispute_focus: string[] | null;
+  lawyer_id: string;
+  assistant_id: string | null;
+  tenant_id: string;
+  gantt_data: Record<string, unknown> | null;
+  ai_analysis: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CaseListResponse {
+  items: CaseItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface EvidenceItem {
+  id: string;
+  case_id: string;
+  tenant_id: string;
+  title: string;
+  evidence_type: string;
+  file_url: string | null;
+  file_size: number | null;
+  file_type: string | null;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TimelineItem {
+  id: string;
+  case_id: string;
+  event_type: string;
+  title: string;
+  description: string | null;
+  event_date: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CaseCreateRequest {
+  title: string;
+  case_type: string;
+  plaintiff: PersonInfo;
+  defendant: PersonInfo;
+  claim_amount?: number;
+  dispute_focus?: string[];
+  assistant_id?: string;
+}

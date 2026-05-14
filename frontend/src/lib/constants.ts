@@ -15,3 +15,34 @@ export const ROLE_LABELS: Record<string, string> = {
   lawyer: "律师",
   assistant: "律师助理",
 };
+
+export const CASE_TYPES: Record<string, string> = {
+  labor_contract: "劳动合同",
+  wage: "工资报酬",
+  injury: "工伤",
+  social_insurance: "社会保险",
+  termination: "解除终止",
+  discrimination: "歧视",
+  other: "其他",
+};
+
+export const CASE_STATUSES: Record<string, string> = {
+  pending: "待处理",
+  in_progress: "处理中",
+  filed: "已立案",
+  hearing: "庭审中",
+  mediating: "调解中",
+  closed: "已结案",
+  archived: "已归档",
+  cancelled: "已撤销",
+};
+
+export const EVIDENCE_TYPES: Record<string, string> = {
+  contract: "合同",
+  chat_record: "聊天记录",
+  photo: "照片",
+  video: "视频",
+  audio: "录音",
+  document: "文档",
+  other: "其他",
+};
