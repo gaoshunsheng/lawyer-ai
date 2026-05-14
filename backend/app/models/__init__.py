@@ -7,6 +7,7 @@ from app.models.embedding import CaseEmbedding, LawEmbedding
 from app.models.token_usage import TokenUsage, TokenUsageDaily
 from app.models.feedback import ResponseFeedback
 from app.models.model_config import ModelConfig, ModelProvider
+from app.models.case import Case, CaseTimeline, Evidence
 
 __all__ = [
     "Base",
@@ -25,4 +26,7 @@ __all__ = [
     "ResponseFeedback",
     "ModelProvider",
     "ModelConfig",
+    "Case",
+    "CaseTimeline",
+    "Evidence",
 ]
