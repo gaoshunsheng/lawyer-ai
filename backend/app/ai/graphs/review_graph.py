@@ -6,8 +6,8 @@ from typing import TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from app.ai.graphs._client import get_openai_client
 from app.ai.prompts.review_prompts import REVIEW_SYSTEM_PROMPT, REVIEW_TEMPLATE
-from app.core.config import settings
 
 
 class ReviewState(TypedDict):
@@ -18,14 +18,9 @@ class ReviewState(TypedDict):
 
 
 async def review_node(state: ReviewState) -> ReviewState:
-    """Call GLM-5.1 for comprehensive contract review."""
+    """Call glm-5.1 for comprehensive contract review."""
     try:
-        from openai import AsyncOpenAI
-
-        client = AsyncOpenAI(
-            api_key=settings.ZHIPU_API_KEY,
-            base_url=settings.ZHIPU_API_BASE,
-        )
+        client = get_openai_client()
 
         prompt = REVIEW_TEMPLATE.format(
             contract_text=state["contract_text"],

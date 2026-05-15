@@ -85,8 +85,7 @@ async def create_document(
     db: AsyncSession = Depends(get_db),
 ):
     data = req.model_dump(exclude_unset=True)
-    template_id = data.pop("template_id", None)
-    data["template_id"] = template_id
+    template_id = req.template_id
 
     content = None
     if template_id:

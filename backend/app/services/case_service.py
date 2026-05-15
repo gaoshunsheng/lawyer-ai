@@ -112,11 +112,12 @@ async def update_case_status(db: AsyncSession, case: Case, status: str) -> Case:
 
 # ── Evidence ──
 
-async def list_evidences(db: AsyncSession, case_id: uuid.UUID) -> list[Evidence]:
+async def list_evidences(db: AsyncSession, case_id: uuid.UUID, limit: int = 200) -> list[Evidence]:
     stmt = (
         select(Evidence)
         .where(Evidence.case_id == case_id)
         .order_by(Evidence.sort_order, Evidence.created_at.desc())
+        .limit(limit)
     )
     result = await db.execute(stmt)
     return list(result.scalars().all())
@@ -165,11 +166,12 @@ async def delete_evidence(db: AsyncSession, evidence: Evidence) -> None:
 
 # ── Timeline ──
 
-async def list_timelines(db: AsyncSession, case_id: uuid.UUID) -> list[CaseTimeline]:
+async def list_timelines(db: AsyncSession, case_id: uuid.UUID, limit: int = 200) -> list[CaseTimeline]:
     stmt = (
         select(CaseTimeline)
         .where(CaseTimeline.case_id == case_id)
         .order_by(CaseTimeline.event_date.desc(), CaseTimeline.created_at.desc())
+        .limit(limit)
     )
     result = await db.execute(stmt)
     return list(result.scalars().all())

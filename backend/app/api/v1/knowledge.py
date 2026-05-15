@@ -114,22 +114,17 @@ async def interpret_law(
 
     articles = await get_law_articles(db, law_id)
 
+    from app.ai.graphs._client import get_openai_client
+    client = get_openai_client()
+
+    articles_text = "\n".join([
+        f"第{a.article_number}条 {a.content}"
+        for a in articles[:20]
+    ])
+    total_articles = len(articles)
+
     async def event_stream():
-        import asyncio
-
-        from openai import AsyncOpenAI
-
         yield f"data: {json.dumps({'status': 'analyzing', 'message': '正在分析法规...'})}\n\n"
-
-        client = AsyncOpenAI(
-            api_key=settings.ZHIPU_API_KEY,
-            base_url=settings.ZHIPU_API_BASE,
-        )
-
-        articles_text = "\n".join([
-            f"第{a.article_number}条 {a.content}"
-            for a in articles[:20]
-        ])
 
         prompt = f"""请对以下法规进行专业解读：
 
@@ -140,6 +135,7 @@ async def interpret_law(
 
 条款内容：
 {articles_text if articles_text else '暂无法条数据'}
+{"（仅展示前20条，共" + str(total_articles) + "条）" if total_articles > 20 else ""}
 
 请按以下结构输出解读（markdown格式）：
 1. 法规概述（立法目的、适用范围）

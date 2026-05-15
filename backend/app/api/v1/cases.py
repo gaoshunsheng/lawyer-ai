@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Form, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/cases", tags=["cases"])
 @router.get("", response_model=CaseListResponse)
 async def list_cases(
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=50),
     status: str | None = None,
     case_type: str | None = None,
     lawyer_id: uuid.UUID | None = None,
@@ -131,10 +131,10 @@ async def list_evidences(
 @router.post("/{case_id}/evidences", response_model=EvidenceResponse, status_code=201)
 async def upload_evidence(
     case_id: uuid.UUID,
-    title: str = Query(...),
-    evidence_type: str = Query(...),
-    description: str | None = Query(None),
-    sort_order: int = Query(0),
+    title: str = Form(...),
+    evidence_type: str = Form(...),
+    description: str | None = Form(None),
+    sort_order: int = Form(0),
     file: UploadFile | None = File(None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -147,8 +147,10 @@ async def upload_evidence(
     file_size = None
     file_type = None
     if file:
+        # TODO: integrate Supabase Storage for actual file persistence
+        content = await file.read()
         file_url = f"/uploads/{case_id}/{file.filename}"
-        file_size = file.size
+        file_size = len(content)
         file_type = file.content_type
     evidence = await case_service.create_evidence(db, case_id, current_user.tenant_id, data, file_url, file_size, file_type)
     return EvidenceResponse.model_validate(evidence)

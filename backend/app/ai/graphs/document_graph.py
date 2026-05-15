@@ -6,8 +6,8 @@ from typing import TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from app.ai.graphs._client import get_openai_client
 from app.ai.prompts.document_prompts import DOCUMENT_GENERATION_TEMPLATE, DOCUMENT_SYSTEM_PROMPT
-from app.core.config import settings
 
 
 class DocumentState(TypedDict):
@@ -22,14 +22,9 @@ class DocumentState(TypedDict):
 
 
 async def generate_document_node(state: DocumentState) -> DocumentState:
-    """Call GLM-5.1 to generate structured legal document."""
+    """Call glm-5.1 to generate structured legal document."""
     try:
-        from openai import AsyncOpenAI
-
-        client = AsyncOpenAI(
-            api_key=settings.ZHIPU_API_KEY,
-            base_url=settings.ZHIPU_API_BASE,
-        )
+        client = get_openai_client()
 
         prompt = DOCUMENT_GENERATION_TEMPLATE.format(
             template_name=state["template_name"],

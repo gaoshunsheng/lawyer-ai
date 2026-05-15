@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -17,10 +17,12 @@ router = APIRouter(prefix="/favorites", tags=["favorites"])
 @router.get("", response_model=list[FavoriteResponse])
 async def list_favorites(
     target_type: str | None = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    items = await favorite_service.list_favorites(db, current_user.id, target_type)
+    items = await favorite_service.list_favorites(db, current_user.id, target_type, page, page_size)
     return [FavoriteResponse.model_validate(i) for i in items]
 
 

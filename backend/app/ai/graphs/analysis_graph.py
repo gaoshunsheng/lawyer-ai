@@ -6,8 +6,8 @@ from typing import TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from app.ai.graphs._client import get_openai_client
 from app.ai.prompts.analysis_prompts import ANALYSIS_SYSTEM_PROMPT, ANALYSIS_TEMPLATE
-from app.core.config import settings
 
 
 class AnalysisState(TypedDict):
@@ -17,14 +17,9 @@ class AnalysisState(TypedDict):
 
 
 async def analyze_node(state: AnalysisState) -> AnalysisState:
-    """Call GLM-5-Turbo for fast case analysis."""
+    """Call glm-5-turbo for fast case analysis."""
     try:
-        from openai import AsyncOpenAI
-
-        client = AsyncOpenAI(
-            api_key=settings.ZHIPU_API_KEY,
-            base_url=settings.ZHIPU_API_BASE,
-        )
+        client = get_openai_client()
 
         case = state["case_data"]
         prompt = ANALYSIS_TEMPLATE.format(

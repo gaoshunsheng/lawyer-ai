@@ -32,11 +32,11 @@ async def test_document_graph_structure():
 
 
 @pytest.mark.asyncio
-@patch("openai.AsyncOpenAI")
-async def test_document_generate_node_success(MockOpenAI):
+@patch("app.ai.graphs.document_graph.get_openai_client")
+async def test_document_generate_node_success(MockGetClient):
     from app.ai.graphs.document_graph import generate_document_node
 
-    MockOpenAI.return_value = _make_openai_mock("生成的文书内容")
+    MockGetClient.return_value = _make_openai_mock("生成的文书内容")
 
     state = {
         "template_name": "劳动争议仲裁申请书",
@@ -54,11 +54,11 @@ async def test_document_generate_node_success(MockOpenAI):
 
 
 @pytest.mark.asyncio
-@patch("openai.AsyncOpenAI")
-async def test_document_generate_node_api_error(MockOpenAI):
+@patch("app.ai.graphs.document_graph.get_openai_client")
+async def test_document_generate_node_api_error(MockGetClient):
     from app.ai.graphs.document_graph import generate_document_node
 
-    MockOpenAI.side_effect = Exception("API error")
+    MockGetClient.side_effect = Exception("API error")
 
     state = {
         "template_name": "test",
@@ -76,11 +76,11 @@ async def test_document_generate_node_api_error(MockOpenAI):
 
 
 @pytest.mark.asyncio
-@patch("openai.AsyncOpenAI")
-async def test_document_generate_node_empty_response(MockOpenAI):
+@patch("app.ai.graphs.document_graph.get_openai_client")
+async def test_document_generate_node_empty_response(MockGetClient):
     from app.ai.graphs.document_graph import generate_document_node
 
-    MockOpenAI.return_value = _make_openai_mock(None)
+    MockGetClient.return_value = _make_openai_mock(None)
 
     state = {
         "template_name": "test",
@@ -109,13 +109,9 @@ async def test_analysis_graph_structure():
 
 
 @pytest.mark.asyncio
-@patch("app.ai.graphs.analysis_graph.settings")
-@patch("openai.AsyncOpenAI")
-async def test_analysis_node_returns_json(MockOpenAI, mock_settings):
+@patch("app.ai.graphs.analysis_graph.get_openai_client")
+async def test_analysis_node_returns_json(MockGetClient):
     from app.ai.graphs.analysis_graph import analyze_node
-
-    mock_settings.ZHIPU_API_KEY = "test-key"
-    mock_settings.ZHIPU_BASE_URL = "https://test.api"
 
     analysis_result = {
         "strengths": ["证据充分"],
@@ -124,7 +120,7 @@ async def test_analysis_node_returns_json(MockOpenAI, mock_settings):
         "strategy": ["尽快提交"],
         "win_prediction": {"probability": 70, "reasoning": "证据充分"},
     }
-    MockOpenAI.return_value = _make_openai_mock(json.dumps(analysis_result))
+    MockGetClient.return_value = _make_openai_mock(json.dumps(analysis_result))
 
     state = {
         "case_data": {"title": "测试案件", "case_type": "labor_contract"},
@@ -137,14 +133,11 @@ async def test_analysis_node_returns_json(MockOpenAI, mock_settings):
 
 
 @pytest.mark.asyncio
-@patch("app.ai.graphs.analysis_graph.settings")
-@patch("openai.AsyncOpenAI")
-async def test_analysis_node_api_error(MockOpenAI, mock_settings):
+@patch("app.ai.graphs.analysis_graph.get_openai_client")
+async def test_analysis_node_api_error(MockGetClient):
     from app.ai.graphs.analysis_graph import analyze_node
 
-    mock_settings.ZHIPU_API_KEY = "test-key"
-    mock_settings.ZHIPU_BASE_URL = "https://test.api"
-    MockOpenAI.side_effect = Exception("Network timeout")
+    MockGetClient.side_effect = Exception("Network timeout")
 
     state = {
         "case_data": {"title": "测试案件"},
@@ -157,14 +150,11 @@ async def test_analysis_node_api_error(MockOpenAI, mock_settings):
 
 
 @pytest.mark.asyncio
-@patch("app.ai.graphs.analysis_graph.settings")
-@patch("openai.AsyncOpenAI")
-async def test_analysis_node_with_full_case_data(MockOpenAI, mock_settings):
+@patch("app.ai.graphs.analysis_graph.get_openai_client")
+async def test_analysis_node_with_full_case_data(MockGetClient):
     from app.ai.graphs.analysis_graph import analyze_node
 
-    mock_settings.ZHIPU_API_KEY = "test-key"
-    mock_settings.ZHIPU_BASE_URL = "https://test.api"
-    MockOpenAI.return_value = _make_openai_mock(
+    MockGetClient.return_value = _make_openai_mock(
         json.dumps({"strengths": [], "win_prediction": {}})
     )
 
@@ -187,7 +177,7 @@ async def test_analysis_node_with_full_case_data(MockOpenAI, mock_settings):
     assert result["error"] == ""
 
     # Verify prompt was built with all fields
-    call_args = MockOpenAI.return_value.chat.completions.create.call_args
+    call_args = MockGetClient.return_value.chat.completions.create.call_args
     user_message = call_args.kwargs["messages"][1]["content"]
     assert "劳动合同纠纷" in user_message
     assert "加班费" in user_message
@@ -205,13 +195,9 @@ async def test_review_graph_structure():
 
 
 @pytest.mark.asyncio
-@patch("app.ai.graphs.review_graph.settings")
-@patch("openai.AsyncOpenAI")
-async def test_review_node_returns_structured_report(MockOpenAI, mock_settings):
+@patch("app.ai.graphs.review_graph.get_openai_client")
+async def test_review_node_returns_structured_report(MockGetClient):
     from app.ai.graphs.review_graph import review_node
-
-    mock_settings.ZHIPU_API_KEY = "test-key"
-    mock_settings.ZHIPU_BASE_URL = "https://test.api"
 
     review_result = {
         "overall_score": 75,
@@ -219,7 +205,7 @@ async def test_review_node_returns_structured_report(MockOpenAI, mock_settings):
         "risks": [{"level": "high", "description": "试用期过长"}],
         "suggestions": ["补充工作地点条款"],
     }
-    MockOpenAI.return_value = _make_openai_mock(json.dumps(review_result))
+    MockGetClient.return_value = _make_openai_mock(json.dumps(review_result))
 
     state = {
         "contract_text": "劳动合同...",
@@ -233,14 +219,11 @@ async def test_review_node_returns_structured_report(MockOpenAI, mock_settings):
 
 
 @pytest.mark.asyncio
-@patch("app.ai.graphs.review_graph.settings")
-@patch("openai.AsyncOpenAI")
-async def test_review_node_api_error(MockOpenAI, mock_settings):
+@patch("app.ai.graphs.review_graph.get_openai_client")
+async def test_review_node_api_error(MockGetClient):
     from app.ai.graphs.review_graph import review_node
 
-    mock_settings.ZHIPU_API_KEY = "test-key"
-    mock_settings.ZHIPU_BASE_URL = "https://test.api"
-    MockOpenAI.side_effect = Exception("Rate limit exceeded")
+    MockGetClient.side_effect = Exception("Rate limit exceeded")
 
     state = {
         "contract_text": "合同内容",
@@ -254,14 +237,11 @@ async def test_review_node_api_error(MockOpenAI, mock_settings):
 
 
 @pytest.mark.asyncio
-@patch("app.ai.graphs.review_graph.settings")
-@patch("openai.AsyncOpenAI")
-async def test_review_node_with_user_concerns(MockOpenAI, mock_settings):
+@patch("app.ai.graphs.review_graph.get_openai_client")
+async def test_review_node_with_user_concerns(MockGetClient):
     from app.ai.graphs.review_graph import review_node
 
-    mock_settings.ZHIPU_API_KEY = "test-key"
-    mock_settings.ZHIPU_BASE_URL = "https://test.api"
-    MockOpenAI.return_value = _make_openai_mock(
+    MockGetClient.return_value = _make_openai_mock(
         json.dumps({"overall_score": 80})
     )
 
@@ -275,7 +255,7 @@ async def test_review_node_with_user_concerns(MockOpenAI, mock_settings):
     assert result["result"]["overall_score"] == 80
 
     # Verify user concerns passed into prompt
-    call_args = MockOpenAI.return_value.chat.completions.create.call_args
+    call_args = MockGetClient.return_value.chat.completions.create.call_args
     user_message = call_args.kwargs["messages"][1]["content"]
     assert "加班费和年假" in user_message
 

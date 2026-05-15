@@ -405,7 +405,12 @@ async def seed_templates(db: AsyncSession) -> None:
 # ── Templates ──
 
 async def list_templates(db: AsyncSession, category: str | None = None, tenant_id: uuid.UUID | None = None) -> list[DocumentTemplate]:
-    conditions = [(DocumentTemplate.is_system == True) | (DocumentTemplate.tenant_id == tenant_id)]
+    from sqlalchemy import or_
+    conditions = []
+    if tenant_id is not None:
+        conditions.append(or_(DocumentTemplate.is_system == True, DocumentTemplate.tenant_id == tenant_id))
+    else:
+        conditions.append(DocumentTemplate.is_system == True)
     if category:
         conditions.append(DocumentTemplate.category == category)
     stmt = select(DocumentTemplate).where(*conditions).order_by(DocumentTemplate.sort_order)

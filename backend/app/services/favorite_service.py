@@ -12,11 +12,19 @@ async def list_favorites(
     db: AsyncSession,
     user_id: uuid.UUID,
     target_type: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
 ) -> list[Favorite]:
     conditions = [Favorite.user_id == user_id]
     if target_type:
         conditions.append(Favorite.target_type == target_type)
-    stmt = select(Favorite).where(*conditions).order_by(Favorite.created_at.desc())
+    stmt = (
+        select(Favorite)
+        .where(*conditions)
+        .order_by(Favorite.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
     result = await db.execute(stmt)
     return list(result.scalars().all())
 

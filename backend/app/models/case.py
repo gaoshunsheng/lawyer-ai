@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import ARRAY, BigInteger, Date, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import ARRAY, Date, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -41,7 +41,7 @@ class Evidence(Base, BaseMixin):
     title: Mapped[str] = mapped_column(String(200))
     evidence_type: Mapped[str] = mapped_column(String(50))
     file_url: Mapped[str | None] = mapped_column(String(500))
-    file_size: Mapped[int | None] = mapped_column(BigInteger)
+    file_size: Mapped[int | None] = mapped_column(Integer)
     file_type: Mapped[str | None] = mapped_column(String(50))
     description: Mapped[str | None] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
