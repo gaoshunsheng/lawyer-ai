@@ -176,3 +176,41 @@ async def export_document(
         content=text,
         headers={"Content-Disposition": f"attachment; filename={doc.title}.txt"},
     )
+
+
+# ── AI Smart Suggest ──
+
+@doc_router.post("/{doc_id}/smart-suggest")
+async def smart_suggest(
+    doc_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    doc = await document_service.get_document(db, doc_id)
+    if not doc or doc.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="文书不存在")
+
+    content_text = ""
+    if doc.content and doc.content.get("raw"):
+        content_text = doc.content["raw"]
+
+    suggestions = {
+        "missing_clauses": [],
+        "weak_arguments": [],
+        "law_references": [],
+        "format_issues": [],
+    }
+
+    if "《劳动法》" in content_text and "《劳动合同法》" not in content_text:
+        suggestions["law_references"].append({
+            "issue": "仅引用了《劳动法》，建议同时引用《劳动合同法》",
+            "severity": "medium",
+        })
+
+    if "第" not in content_text:
+        suggestions["weak_arguments"].append({
+            "issue": "缺少具体法条引用，建议补充法条编号",
+            "severity": "high",
+        })
+
+    return {"document_id": str(doc_id), "suggestions": suggestions}

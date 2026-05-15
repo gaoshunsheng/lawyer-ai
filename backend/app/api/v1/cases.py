@@ -21,6 +21,7 @@ from app.schemas.case import (
     TimelineResponse,
     TimelineUpdate,
 )
+from app.ai.graphs.analysis_graph import build_analysis_graph
 from app.services import case_service
 
 router = APIRouter(prefix="/cases", tags=["cases"])
@@ -238,3 +239,40 @@ async def delete_timeline(
         raise HTTPException(status_code=404, detail="时间线事件不存在")
     await case_service.delete_timeline(db, timeline)
     return None
+
+
+# ── AI Analysis ──
+
+@router.post("/{case_id}/analyze")
+async def analyze_case(
+    case_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    case = await case_service.get_case(db, case_id)
+    if not case or case.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="案件不存在")
+
+    evidences = await case_service.list_evidences(db, case_id)
+    timelines = await case_service.list_timelines(db, case_id)
+
+    case_data = {
+        "title": case.title,
+        "case_type": case.case_type,
+        "plaintiff": case.plaintiff,
+        "defendant": case.defendant,
+        "claim_amount": float(case.claim_amount) if case.claim_amount else None,
+        "dispute_focus": case.dispute_focus,
+        "evidences": [{"title": e.title, "type": e.evidence_type, "description": e.description} for e in evidences],
+        "timeline": [{"date": str(t.event_date), "type": t.event_type, "title": t.title, "description": t.description} for t in timelines],
+    }
+
+    graph = build_analysis_graph()
+    result = await graph.ainvoke({"case_data": case_data, "result": {}, "error": ""})
+
+    if result.get("error"):
+        raise HTTPException(status_code=500, detail=f"AI分析失败: {result['error']}")
+
+    await case_service.update_case(db, case, {"ai_analysis": result["result"]})
+
+    return {"case_id": str(case_id), "analysis": result["result"]}
