@@ -10,7 +10,7 @@ def test_illegal_termination_basic():
 
 def test_illegal_termination_half_year():
     result = calculate("illegal_termination", {"monthly_salary": 10000, "work_years": 0.5})
-    assert result.result == 10000  # 10000 * 0.5 * 2
+    assert result.result == 20000  # 0.5年按N=1算 → 10000 * 1 * 2
 
 
 def test_illegal_termination_high_salary_cap():
