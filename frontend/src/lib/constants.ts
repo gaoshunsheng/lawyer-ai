@@ -46,3 +46,21 @@ export const EVIDENCE_TYPES: Record<string, string> = {
   document: "文档",
   other: "其他",
 };
+
+export const DOC_CATEGORIES: Record<string, string> = {
+  "申请类": "申请类",
+  "起诉类": "起诉类",
+  "答辩类": "答辩类",
+  "函件类": "函件类",
+  "协议类": "协议类",
+  "证据类": "证据类",
+  "代理类": "代理类",
+  "通知类": "通知类",
+};
+
+export const DOC_STATUSES: Record<string, string> = {
+  draft: "草稿",
+  generating: "生成中",
+  completed: "已完成",
+  exported: "已导出",
+};

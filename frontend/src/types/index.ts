@@ -190,3 +190,40 @@ export interface CaseCreateRequest {
   dispute_focus?: string[];
   assistant_id?: string;
 }
+
+export interface TemplateItem {
+  id: string;
+  name: string;
+  doc_type: string;
+  content_template: string;
+  variables_schema: { variables: { name: string; label: string; type: string; required: boolean; default?: string }[] };
+  category: string;
+  sort_order: number;
+  is_system: boolean;
+  tenant_id: string | null;
+  created_at: string;
+}
+
+export interface DocumentItem {
+  id: string;
+  case_id: string | null;
+  tenant_id: string;
+  user_id: string;
+  title: string;
+  doc_type: string;
+  template_id: string | null;
+  content: Record<string, unknown> | null;
+  variables: Record<string, unknown> | null;
+  status: string;
+  version: number;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentListResponse {
+  items: DocumentItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
