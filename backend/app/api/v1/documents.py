@@ -320,3 +320,43 @@ async def batch_generate(
         )
         created.append(str(doc.id))
     return {"created_ids": created, "count": len(created)}
+
+
+# ── Calculator Embedding ──
+
+
+@doc_router.post("/{doc_id}/embed-calculation")
+async def embed_calculation(
+    doc_id: uuid.UUID,
+    calc_type: str = Query(..., pattern="^(illegal_termination|overtime|annual_leave|work_injury)$"),
+    params: dict = {},
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    doc = await document_service.get_document(db, doc_id)
+    if not doc or doc.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="文书不存在")
+
+    from app.services.calculator_service import calculate
+    try:
+        result = calculate(calc_type, params)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Embed result into document content
+    calc_section = f"\n\n--- 赔偿计算结果 ---\n计算类型: {calc_type}\n金额: ¥{result.result:,.2f}\n"
+    for step in result.steps:
+        calc_section += f"  {step}\n"
+
+    existing = doc.content or {}
+    raw = existing.get("raw", "")
+    existing["raw"] = raw + calc_section
+    doc.content = existing
+    await db.flush()
+
+    return {
+        "result": result.result,
+        "breakdown": result.breakdown,
+        "basis": result.basis,
+        "steps": result.steps,
+    }
