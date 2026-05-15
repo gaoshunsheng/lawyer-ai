@@ -147,11 +147,12 @@ async def upload_evidence(
     file_size = None
     file_type = None
     if file:
-        # TODO: integrate Supabase Storage for actual file persistence
+        from app.services.storage_service import upload_file
         content = await file.read()
-        file_url = f"/uploads/{case_id}/{file.filename}"
         file_size = len(content)
         file_type = file.content_type
+        storage_path = f"evidence/{case_id}/{file.filename}"
+        file_url = await upload_file(content, storage_path, file_type)
     evidence = await case_service.create_evidence(db, case_id, current_user.tenant_id, data, file_url, file_size, file_type)
     return EvidenceResponse.model_validate(evidence)
 
