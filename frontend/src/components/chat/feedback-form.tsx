@@ -13,6 +13,24 @@ interface FeedbackFormProps {
   }) => void;
 }
 
+const StarRating = ({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) => (
+  <div className="flex items-center gap-2">
+    <span className="text-xs text-muted-foreground w-20">{label}</span>
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          className={`text-lg ${star <= value ? "text-yellow-400" : "text-gray-300"} hover:text-yellow-400 transition-colors`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
 export function FeedbackForm({ messageId, onSubmit }: FeedbackFormProps) {
   const [isPositive, setIsPositive] = useState<boolean | null>(null);
   const [scores, setScores] = useState({ law: 0, depth: 0, value: 0 });
@@ -54,45 +72,30 @@ export function FeedbackForm({ messageId, onSubmit }: FeedbackFormProps) {
       </div>
 
       {isPositive !== null && (
-        <>
-          <div className="space-y-2">
-            {[
-              { key: "law" as const, label: "法条准确性" },
-              { key: "depth" as const, label: "分析深度" },
-              { key: "value" as const, label: "实用价值" },
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-2">
-                <span className="text-sm w-20">{label}</span>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => setScores((prev) => ({ ...prev, [key]: star }))}
-                      className={`text-lg ${scores[key] >= star ? "text-yellow-500" : "text-gray-300"}`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
+        <div className="space-y-2 py-3 border-t">
+          <p className="text-xs text-muted-foreground">请对本次回复进行评价（可选）</p>
+          <StarRating label="法条准确性" value={scores.law} onChange={(v) => setScores((s) => ({ ...s, law: v }))} />
+          <StarRating label="分析深度" value={scores.depth} onChange={(v) => setScores((s) => ({ ...s, depth: v }))} />
+          <StarRating label="实用价值" value={scores.value} onChange={(v) => setScores((s) => ({ ...s, value: v }))} />
           <textarea
             value={textFeedback}
             onChange={(e) => setTextFeedback(e.target.value)}
-            placeholder="补充反馈 (可选)..."
-            className="w-full rounded border px-3 py-2 text-sm resize-none"
-            rows={2}
+            maxLength={500}
+            rows={3}
+            placeholder="补充你的评价（最多500字）..."
+            className="w-full rounded-md border px-3 py-2 text-sm bg-background mt-2"
           />
-
-          <button
-            onClick={handleSubmit}
-            className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground hover:bg-primary/90"
-          >
-            提交反馈
-          </button>
-        </>
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground">{textFeedback.length}/500</span>
+            <button
+              onClick={handleSubmit}
+              disabled={submitted}
+              className="rounded-md bg-primary px-4 py-1.5 text-xs text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {submitted ? "已提交" : "提交评价"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
