@@ -23,7 +23,7 @@ async def analyze_node(state: AnalysisState) -> AnalysisState:
 
         client = AsyncOpenAI(
             api_key=settings.ZHIPU_API_KEY,
-            base_url=settings.ZHIPU_BASE_URL,
+            base_url=settings.ZHIPU_API_BASE,
         )
 
         case = state["case_data"]

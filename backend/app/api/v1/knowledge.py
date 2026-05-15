@@ -187,11 +187,11 @@ async def batch_import(
     for law_data in req.laws:
         try:
             law = Law(
+                tenant_id=current_user.tenant_id,
                 title=law_data.get("title", ""),
                 law_type=law_data.get("law_type", "law"),
                 promulgating_body=law_data.get("promulgating_body"),
-                document_number=law_data.get("document_number"),
-                publish_date=law_data.get("publish_date"),
+                promulgation_date=law_data.get("publish_date"),
                 effective_date=law_data.get("effective_date"),
                 status=law_data.get("status", "effective"),
                 full_text=law_data.get("full_text", ""),
@@ -204,6 +204,7 @@ async def batch_import(
     for case_data in req.cases:
         try:
             case = PrecedentCase(
+                tenant_id=current_user.tenant_id,
                 case_name=case_data.get("case_name", ""),
                 case_type=case_data.get("case_type"),
                 case_number=case_data.get("case_number"),

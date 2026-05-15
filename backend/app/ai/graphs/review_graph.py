@@ -24,7 +24,7 @@ async def review_node(state: ReviewState) -> ReviewState:
 
         client = AsyncOpenAI(
             api_key=settings.ZHIPU_API_KEY,
-            base_url=settings.ZHIPU_BASE_URL,
+            base_url=settings.ZHIPU_API_BASE,
         )
 
         prompt = REVIEW_TEMPLATE.format(
