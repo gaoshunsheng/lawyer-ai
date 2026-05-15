@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/providers/auth-provider";
+import { api } from "@/lib/api-client";
 
 const calcTypes = [
   { value: "illegal_termination", label: "违法解除(2N)" },
@@ -10,6 +12,7 @@ const calcTypes = [
 ];
 
 export default function CalculatorPage() {
+  const { token } = useAuth();
   const [calcType, setCalcType] = useState("illegal_termination");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -18,16 +21,16 @@ export default function CalculatorPage() {
   const [city, setCity] = useState("全国");
 
   const handleCalculate = async () => {
+    if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/calculator/calculate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ calc_type: calcType, params: { monthly_salary: Number(monthlySalary), work_years: Number(workYears), city } }),
-      });
-      setResult(await res.json());
-    } catch (e) {
-      setResult({ error: String(e) });
+      const data = await api.post("/calculator/calculate", {
+        calc_type: calcType,
+        params: { monthly_salary: Number(monthlySalary), work_years: Number(workYears), city },
+      }, token);
+      setResult(data);
+    } catch (e: any) {
+      setResult({ error: e.message || String(e) });
     } finally {
       setLoading(false);
     }
