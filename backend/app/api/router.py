@@ -10,6 +10,7 @@ from app.api.v1.cases import router as cases_router
 from app.api.v1.documents import doc_router, template_router
 from app.api.v1.contracts import router as contracts_router
 from app.api.v1.token_usage import router as token_usage_router
+from app.api.v1.favorites import router as favorites_router
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth_router)
@@ -23,3 +24,4 @@ api_router.include_router(feedback_router)
 api_router.include_router(knowledge_router)
 api_router.include_router(token_usage_router)
 api_router.include_router(models_router)
+api_router.include_router(favorites_router)
