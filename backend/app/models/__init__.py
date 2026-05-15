@@ -8,6 +8,7 @@ from app.models.token_usage import TokenUsage, TokenUsageDaily
 from app.models.feedback import ResponseFeedback
 from app.models.model_config import ModelConfig, ModelProvider
 from app.models.case import Case, CaseTimeline, Evidence
+from app.models.document import Document, DocumentTemplate
 
 __all__ = [
     "Base",
@@ -29,4 +30,6 @@ __all__ = [
     "Case",
     "CaseTimeline",
     "Evidence",
+    "Document",
+    "DocumentTemplate",
 ]
