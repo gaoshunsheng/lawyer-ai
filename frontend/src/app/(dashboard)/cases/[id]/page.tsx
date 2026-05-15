@@ -7,8 +7,139 @@ import { api } from "@/lib/api-client";
 import { CASE_TYPES, CASE_STATUSES, EVIDENCE_TYPES } from "@/lib/constants";
 import type { CaseItem, EvidenceItem, TimelineItem } from "@/types";
 
-const TABS = ["信息", "时间线", "证据"] as const;
+const TABS = ["信息", "时间线", "证据", "AI分析"] as const;
 type Tab = (typeof TABS)[number];
+
+function AnalysisDisplay({ data }: { data: Record<string, unknown> }) {
+  const strengths = (data.strengths as string[]) || [];
+  const weaknesses = (data.weaknesses as string[]) || [];
+  const risks = (data.risks as { level: string; description: string }[]) || [];
+  const strategy = (data.strategy as string[]) || [];
+  const winPrediction = data.win_prediction as { probability: number; reasoning: string } | undefined;
+  const relevantLaws = (data.relevant_laws as { title: string; article: string; relevance: string }[]) || [];
+  const relevantCases = (data.relevant_cases as { name: string; similarity: string; outcome: string }[]) || [];
+
+  const riskBadgeColor = (level: string) => {
+    switch (level) {
+      case "high": return "bg-red-100 text-red-700";
+      case "medium": return "bg-yellow-100 text-yellow-700";
+      case "low": return "bg-blue-100 text-blue-700";
+      default: return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Win Prediction */}
+      {winPrediction && (
+        <div className="rounded-lg border p-5 bg-primary/5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">胜诉预测</h3>
+            <span className={`text-2xl font-bold ${winPrediction.probability >= 70 ? "text-green-600" : winPrediction.probability >= 40 ? "text-yellow-600" : "text-red-600"}`}>
+              {winPrediction.probability}%
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">{winPrediction.reasoning}</p>
+        </div>
+      )}
+
+      {/* Strengths & Weaknesses */}
+      <div className="grid grid-cols-2 gap-4">
+        {strengths.length > 0 && (
+          <div className="rounded-lg border p-5">
+            <h3 className="font-semibold mb-3 text-green-700">优势分析</h3>
+            <ul className="space-y-2">
+              {strengths.map((s, i) => (
+                <li key={i} className="text-sm flex gap-2">
+                  <span className="text-green-600 shrink-0">+</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {weaknesses.length > 0 && (
+          <div className="rounded-lg border p-5">
+            <h3 className="font-semibold mb-3 text-red-700">劣势分析</h3>
+            <ul className="space-y-2">
+              {weaknesses.map((w, i) => (
+                <li key={i} className="text-sm flex gap-2">
+                  <span className="text-red-600 shrink-0">-</span>
+                  <span>{w}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Risks */}
+      {risks.length > 0 && (
+        <div className="rounded-lg border p-5">
+          <h3 className="font-semibold mb-3">风险评估（{risks.length}项）</h3>
+          <div className="space-y-3">
+            {risks.map((r, i) => (
+              <div key={i} className="flex gap-3 border-b pb-3 last:border-0">
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${riskBadgeColor(r.level)}`}>
+                  {r.level === "high" ? "高风险" : r.level === "medium" ? "中风险" : "低风险"}
+                </span>
+                <p className="text-sm">{r.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Strategy */}
+      {strategy.length > 0 && (
+        <div className="rounded-lg border p-5">
+          <h3 className="font-semibold mb-3">策略建议</h3>
+          <ul className="space-y-2">
+            {strategy.map((s, i) => (
+              <li key={i} className="text-sm flex gap-2">
+                <span className="text-primary shrink-0">→</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Relevant Laws */}
+      {relevantLaws.length > 0 && (
+        <div className="rounded-lg border p-5">
+          <h3 className="font-semibold mb-3">相关法条</h3>
+          <div className="space-y-3">
+            {relevantLaws.map((l, i) => (
+              <div key={i} className="border-b pb-3 last:border-0">
+                <p className="text-sm font-medium">{l.title} - {l.article}</p>
+                <p className="text-xs text-muted-foreground mt-1">{l.relevance}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Relevant Cases */}
+      {relevantCases.length > 0 && (
+        <div className="rounded-lg border p-5">
+          <h3 className="font-semibold mb-3">相关判例</h3>
+          <div className="space-y-3">
+            {relevantCases.map((c, i) => (
+              <div key={i} className="border-b pb-3 last:border-0">
+                <p className="text-sm font-medium">{c.name}</p>
+                <div className="flex gap-4 mt-1">
+                  <span className="text-xs text-muted-foreground">相似度：{c.similarity}</span>
+                  <span className="text-xs text-muted-foreground">结果：{c.outcome}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +163,9 @@ export default function CaseDetailPage() {
   const [tlTitle, setTlTitle] = useState("");
   const [tlDesc, setTlDesc] = useState("");
   const [tlDate, setTlDate] = useState("");
+
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<Record<string, unknown> | null>(null);
 
   const fetchCase = useCallback(async () => {
     if (!token) return;
@@ -115,6 +249,17 @@ export default function CaseDetailPage() {
       await api.delete(`/cases/${id}/timeline/${tid}`, token);
       setTimelines((prev) => prev.filter((t) => t.id !== tid));
     } catch {}
+  };
+
+  const fetchAnalysis = async () => {
+    if (!token || aiLoading) return;
+    setAiLoading(true);
+    try {
+      const data = await api.post<{ analysis: Record<string, unknown> }>(`/cases/${id}/analyze`, {}, token);
+      setAiResult(data.analysis);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   if (loading) return <p className="p-6 text-center text-muted-foreground">加载中...</p>;
@@ -325,6 +470,28 @@ export default function CaseDetailPage() {
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      )}
+
+      {tab === "AI分析" && (
+        <div className="space-y-4">
+          {(caseData.ai_analysis ? caseData.ai_analysis : aiResult) ? (
+            <AnalysisDisplay data={(caseData.ai_analysis || aiResult) as Record<string, unknown>} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">尚未进行AI分析</p>
+              <button
+                onClick={fetchAnalysis}
+                disabled={aiLoading}
+                className="rounded-md bg-primary px-6 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {aiLoading ? "分析中..." : "开始AI分析"}
+              </button>
+            </div>
+          )}
+          {aiLoading && (
+            <p className="text-center text-sm text-muted-foreground">AI正在分析案件，请稍候...</p>
           )}
         </div>
       )}
