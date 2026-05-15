@@ -9,6 +9,7 @@ from app.models.feedback import ResponseFeedback
 from app.models.model_config import ModelConfig, ModelProvider
 from app.models.case import Case, CaseTimeline, Evidence
 from app.models.document import Document, DocumentTemplate
+from app.models.favorite import Favorite
 
 __all__ = [
     "Base",
@@ -32,4 +33,5 @@ __all__ = [
     "Evidence",
     "Document",
     "DocumentTemplate",
+    "Favorite",
 ]
