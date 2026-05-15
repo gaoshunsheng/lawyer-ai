@@ -1,7 +1,9 @@
 # backend/app/api/v1/documents.py
 from __future__ import annotations
 
+import html
 import json
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -147,7 +149,7 @@ async def generate_document(
             if doc.content.get("variables"):
                 for k, v in doc.content["variables"].items():
                     text = text.replace(f"{{{{{k}}}}}", str(v))
-            yield f"data: {json.dumps({'status': 'complete', 'content': {'html': f'<pre>{text}</pre>'}})}\n\n"
+            yield f"data: {json.dumps({'status': 'complete', 'content': {'html': f'<pre>{html.escape(text)}</pre>'}})}\n\n"
         else:
             yield f"data: {json.dumps({'status': 'error', 'message': '无可用的模板内容'})}\n\n"
         yield "data: [DONE]\n\n"
@@ -172,13 +174,20 @@ async def export_document(
             text = text.replace(f"{{{{{k}}}}}", str(v))
 
     from fastapi.responses import PlainTextResponse
+    from urllib.parse import quote
+
+    safe_title = re.sub(r'[\r\n]', '_', doc.title or "document")
+    encoded_title = quote(safe_title)
     return PlainTextResponse(
         content=text,
-        headers={"Content-Disposition": f"attachment; filename={doc.title}.txt"},
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded_title}.txt"},
     )
 
 
-# ── AI Smart Suggest ──
+# ── AI Smart Suggest (Stub) ──
+# NOTE: This endpoint returns rule-based suggestions only, not AI-generated analysis.
+# Full AI integration via document_graph is planned for a future iteration.
+
 
 @doc_router.post("/{doc_id}/smart-suggest")
 async def smart_suggest(

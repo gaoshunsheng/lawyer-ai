@@ -33,7 +33,13 @@ async def create_favorite(
     already = await favorite_service.is_favorited(db, current_user.id, req.target_type, req.target_id)
     if already:
         raise HTTPException(status_code=409, detail="已收藏")
-    fav = await favorite_service.create_favorite(db, current_user.id, req.model_dump())
+    try:
+        fav = await favorite_service.create_favorite(db, current_user.id, req.model_dump())
+    except Exception as exc:
+        from sqlalchemy.exc import IntegrityError
+        if isinstance(exc, IntegrityError):
+            raise HTTPException(status_code=409, detail="已收藏")
+        raise
     return FavoriteResponse.model_validate(fav)
 
 

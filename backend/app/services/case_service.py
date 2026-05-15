@@ -24,6 +24,20 @@ async def generate_case_number(db: AsyncSession, tenant_id: uuid.UUID) -> str:
     return f"LD-{year}-{count + 1:04d}"
 
 
+async def _generate_unique_case_number(db: AsyncSession, tenant_id: uuid.UUID) -> str:
+    """Generate case number with retry on unique constraint collision."""
+    from sqlalchemy.exc import IntegrityError
+
+    for _ in range(3):
+        case_number = await generate_case_number(db, tenant_id)
+        try:
+            await db.flush()
+            return case_number
+        except IntegrityError:
+            await db.rollback()
+    return await generate_case_number(db, tenant_id)
+
+
 async def list_cases(
     db: AsyncSession,
     tenant_id: uuid.UUID,
@@ -42,7 +56,8 @@ async def list_cases(
     if lawyer_id:
         conditions.append(Case.lawyer_id == lawyer_id)
     if search:
-        conditions.append(Case.title.ilike(f"%{search}%"))
+        safe_search = search.replace("%", "\\%").replace("_", "\\_")
+        conditions.append(Case.title.ilike(f"%{safe_search}%", escape="\\"))
 
     count_stmt = select(func.count(Case.id)).where(*conditions)
     total = (await db.execute(count_stmt)).scalar() or 0
@@ -59,8 +74,11 @@ async def list_cases(
     return items, total
 
 
-async def get_case(db: AsyncSession, case_id: uuid.UUID) -> Case | None:
-    stmt = select(Case).where(Case.id == case_id)
+async def get_case(db: AsyncSession, case_id: uuid.UUID, tenant_id: uuid.UUID | None = None) -> Case | None:
+    conditions = [Case.id == case_id]
+    if tenant_id is not None:
+        conditions.append(Case.tenant_id == tenant_id)
+    stmt = select(Case).where(*conditions)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 

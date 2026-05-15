@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func, select, case, extract
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,7 @@ async def get_feedback_stats(
     days: int = 30,
 ) -> dict:
     """Aggregate feedback stats for the last N days."""
-    cutoff = datetime.now() - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
     base_condition = [
         ResponseFeedback.tenant_id == tenant_id,
@@ -69,7 +69,7 @@ async def get_feedback_trends(
     granularity: str = "day",
 ) -> list[dict]:
     """Get daily/weekly/monthly satisfaction trends."""
-    cutoff = datetime.now() - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
     if granularity == "month":
         date_col = func.date_trunc("month", ResponseFeedback.created_at)

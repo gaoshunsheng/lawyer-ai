@@ -74,8 +74,8 @@ async def get_case(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
     return CaseResponse.model_validate(case)
 
@@ -87,8 +87,8 @@ async def update_case(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
     data = req.model_dump(exclude_unset=True)
     if "plaintiff" in data and data["plaintiff"] and not isinstance(data["plaintiff"], dict):
@@ -106,8 +106,8 @@ async def update_case_status(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
     case = await case_service.update_case_status(db, case, req.status)
     return CaseResponse.model_validate(case)
@@ -121,8 +121,8 @@ async def list_evidences(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
     items = await case_service.list_evidences(db, case_id)
     return [EvidenceResponse.model_validate(i) for i in items]
@@ -139,8 +139,8 @@ async def upload_evidence(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
     data = {"title": title, "evidence_type": evidence_type, "description": description, "sort_order": sort_order}
     file_url = None
@@ -191,8 +191,8 @@ async def list_timelines(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
     items = await case_service.list_timelines(db, case_id)
     return [TimelineResponse.model_validate(i) for i in items]
@@ -205,8 +205,8 @@ async def create_timeline(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
     timeline = await case_service.create_timeline(db, case_id, current_user.id, req.model_dump())
     return TimelineResponse.model_validate(timeline)
@@ -223,6 +223,9 @@ async def update_timeline(
     timeline = await case_service.get_timeline(db, timeline_id)
     if not timeline or timeline.case_id != case_id:
         raise HTTPException(status_code=404, detail="时间线事件不存在")
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="案件不存在")
     timeline = await case_service.update_timeline(db, timeline, req.model_dump(exclude_unset=True))
     return TimelineResponse.model_validate(timeline)
 
@@ -237,6 +240,9 @@ async def delete_timeline(
     timeline = await case_service.get_timeline(db, timeline_id)
     if not timeline or timeline.case_id != case_id:
         raise HTTPException(status_code=404, detail="时间线事件不存在")
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="案件不存在")
     await case_service.delete_timeline(db, timeline)
     return None
 
@@ -249,8 +255,8 @@ async def analyze_case(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    case = await case_service.get_case(db, case_id)
-    if not case or case.tenant_id != current_user.tenant_id:
+    case = await case_service.get_case(db, case_id, current_user.tenant_id)
+    if not case:
         raise HTTPException(status_code=404, detail="案件不存在")
 
     evidences = await case_service.list_evidences(db, case_id)

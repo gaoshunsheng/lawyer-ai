@@ -18,7 +18,8 @@ router = APIRouter(prefix="/contracts", tags=["contracts"])
 
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
 
-# In-memory store for review reports (will be persisted in Module 5)
+# WARNING: In-memory store — reports are lost on server restart and not shared
+# across multiple workers. Must be replaced with database persistence before production.
 _review_reports: dict[str, dict] = {}
 
 

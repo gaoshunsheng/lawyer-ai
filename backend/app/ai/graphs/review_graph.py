@@ -43,7 +43,11 @@ async def review_node(state: ReviewState) -> ReviewState:
             response_format={"type": "json_object"},
         )
 
-        state["result"] = json.loads(response.choices[0].message.content or "{}")
+        content = response.choices[0].message.content or "{}"
+        try:
+            state["result"] = json.loads(content)
+        except json.JSONDecodeError:
+            state["error"] = "AI返回了无效的JSON格式"
     except Exception as e:
         state["error"] = str(e)
 

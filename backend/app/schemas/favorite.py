@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import datetime
 import uuid
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+VALID_TARGET_TYPES = ("case", "document", "law", "case_precedent")
 
 
 class FavoriteCreate(BaseModel):
-    target_type: str
+    target_type: str = Field(..., pattern="^(case|document|law|case_precedent)$")
     target_id: uuid.UUID
     notes: str | None = None
 

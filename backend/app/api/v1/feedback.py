@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -14,9 +14,9 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 class FeedbackRequest(BaseModel):
     message_id: uuid.UUID
     overall_positive: bool
-    law_accuracy_score: int | None = None
-    analysis_depth_score: int | None = None
-    practical_value_score: int | None = None
+    law_accuracy_score: int | None = Field(None, ge=1, le=5)
+    analysis_depth_score: int | None = Field(None, ge=1, le=5)
+    practical_value_score: int | None = Field(None, ge=1, le=5)
     text_feedback: str | None = None
 
 
@@ -37,6 +37,7 @@ async def create_feedback(
         text_feedback=req.text_feedback,
     )
     db.add(fb)
+    await db.flush()
     return {"status": "ok"}
 
 

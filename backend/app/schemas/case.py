@@ -5,6 +5,9 @@ import uuid
 from pydantic import BaseModel, Field
 
 
+CASE_STATUSES = ("pending", "active", "closed", "archived")
+
+
 class PersonInfo(BaseModel):
     name: str = ""
     id_number: str = ""
@@ -32,7 +35,7 @@ class CaseUpdate(BaseModel):
 
 
 class CaseStatusUpdate(BaseModel):
-    status: str
+    status: str = Field(..., pattern="^(pending|active|closed|archived)$")
 
 
 class CaseResponse(BaseModel):

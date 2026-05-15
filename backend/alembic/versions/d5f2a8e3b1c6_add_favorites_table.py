@@ -30,7 +30,8 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'target_type', 'target_id', name='uq_favorite_target')
     )
     op.create_index(op.f('ix_favorites_user_id'), 'favorites', ['user_id'], unique=False)
     op.create_index(op.f('ix_favorites_target_type'), 'favorites', ['target_type'], unique=False)

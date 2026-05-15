@@ -136,8 +136,8 @@ class TestCaseSchemas:
             CaseStatusUpdate()
 
     def test_case_status_update_valid(self):
-        req = CaseStatusUpdate(status="in_progress")
-        assert req.status == "in_progress"
+        req = CaseStatusUpdate(status="active")
+        assert req.status == "active"
 
     # -- CaseResponse --
 
