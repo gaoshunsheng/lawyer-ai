@@ -7,6 +7,8 @@ interface Message {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
+  is_follow_up?: boolean;
+  attachments?: Record<string, unknown>;
 }
 
 export function MessageList({ messages }: { messages: Message[] }) {
@@ -27,7 +29,13 @@ export function MessageList({ messages }: { messages: Message[] }) {
         </div>
       )}
       {messages.map((msg) => (
-        <MessageItem key={msg.id} role={msg.role} content={msg.content} />
+        <MessageItem
+          key={msg.id}
+          role={msg.role}
+          content={msg.content}
+          is_follow_up={msg.is_follow_up}
+          attachments={msg.attachments}
+        />
       ))}
       <div ref={bottomRef} />
     </div>

@@ -31,6 +31,8 @@ export interface ChatSession {
   id: string;
   title: string | null;
   status: string;
+  case_id?: string;
+  follow_up_count?: number;
   created_at: string;
 }
 
@@ -40,6 +42,8 @@ export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
   tokens_used: number | null;
+  is_follow_up?: boolean;
+  attachments?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -235,4 +239,89 @@ export interface FavoriteItem {
   target_id: string;
   notes: string | null;
   created_at: string;
+}
+
+// ── Phase 3 Types ──
+
+// Trial Simulation
+export interface TrialSimulation {
+  id: string;
+  case_id: string;
+  mode: string;
+  role: string;
+  status: string;
+  rounds_completed: number;
+  strategy_report: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface TrialRound {
+  id: string;
+  simulation_id: string;
+  round_num: number;
+  role: string;
+  content: string;
+  argument_strength: string | null;
+  evaluation: Record<string, unknown> | null;
+}
+
+// Gantt Chart
+export interface GanttNode {
+  id: string;
+  title: string;
+  type: string;
+  start: string;
+  end: string;
+  assignee_id?: string;
+  status?: string;
+  progress?: number;
+  color?: string;
+}
+
+export interface GanttDependency {
+  from: string;
+  to: string;
+  type: string;
+}
+
+export interface GanttData {
+  nodes: GanttNode[];
+  dependencies: GanttDependency[];
+}
+
+// Reports
+export interface CaseTypeStat {
+  type: string;
+  count: number;
+  amount: number;
+}
+
+export interface CaseStatusStat {
+  status: string;
+  count: number;
+}
+
+export interface CaseOverview {
+  total: number;
+  by_type: CaseTypeStat[];
+  by_status: CaseStatusStat[];
+  avg_duration_days: number;
+  win_rate: number;
+  total_claim_amount: number;
+}
+
+export interface TrendPeriod {
+  period: string;
+  total: number;
+  by_type: Record<string, number>;
+  avg_amount: number;
+}
+
+export interface LawyerStat {
+  user_id: string;
+  name: string;
+  total_cases: number;
+  win_rate: number;
+  avg_satisfaction: number;
+  total_claim_amount: number;
 }

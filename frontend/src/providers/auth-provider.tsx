@@ -10,6 +10,9 @@ interface User {
   real_name: string | null;
   role: string;
   tenant_id: string;
+  department_id: string | null;
+  avatar_url: string | null;
+  status: string;
 }
 
 interface AuthContextType {

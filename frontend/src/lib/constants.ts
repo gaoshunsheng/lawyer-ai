@@ -64,3 +64,23 @@ export const DOC_STATUSES: Record<string, string> = {
   completed: "已完成",
   exported: "已导出",
 };
+
+export const TRIAL_MODES: Record<string, string> = {
+  arbitration: "劳动仲裁模拟",
+  first_instance: "一审模拟",
+  defense: "答辩模拟",
+  judgment: "判决模拟",
+};
+
+export const TRIAL_ROLES: Record<string, string> = {
+  plaintiff: "原告方",
+  defendant: "被告方",
+  judge: "法官",
+};
+
+export const GANTT_NODE_TYPES: Record<string, { label: string; color: string }> = {
+  legal_deadline: { label: "法定期限", color: "red" },
+  milestone: { label: "里程碑", color: "blue" },
+  task: { label: "任务", color: "green" },
+  ai_assisted: { label: "AI辅助", color: "purple" },
+};

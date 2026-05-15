@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/lib/api-client";
@@ -12,7 +12,7 @@ interface StepState {
   variables: Record<string, string>;
 }
 
-export default function NewDocumentPage() {
+function NewDocumentContent() {
   const { token } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -161,9 +161,9 @@ export default function NewDocumentPage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={handleCreate} disabled={state.step === "creating"}
+            <button onClick={handleCreate} disabled={(state as StepState).step === "creating"}
               className="rounded-md bg-primary px-6 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-              {state.step === "creating" ? "创建中..." : "创建文书"}
+              {(state as StepState).step === "creating" ? "创建中..." : "创建文书"}
             </button>
             <button onClick={() => setState({ step: "select", template: null, variables: {} })}
               className="rounded-md border px-6 py-2 text-sm hover:bg-accent">
@@ -173,5 +173,13 @@ export default function NewDocumentPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NewDocumentPage() {
+  return (
+    <Suspense fallback={<p className="p-6 text-center text-muted-foreground">加载中...</p>}>
+      <NewDocumentContent />
+    </Suspense>
   );
 }

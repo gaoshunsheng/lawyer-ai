@@ -9,6 +9,8 @@ interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   created_at: string;
+  is_follow_up?: boolean;
+  attachments?: Record<string, unknown>;
 }
 
 export function useChat(sessionId: string | null, token?: string | null) {
@@ -17,7 +19,7 @@ export function useChat(sessionId: string | null, token?: string | null) {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  const authHeaders = () => (token ? { Authorization: `Bearer ${token}` } : {});
+  const authHeaders = (): Record<string, string> => (token ? { Authorization: `Bearer ${token}` } : {});
 
   const loadMessages = useCallback(async () => {
     if (!sessionId || !token) return;
@@ -36,7 +38,7 @@ export function useChat(sessionId: string | null, token?: string | null) {
   }, [sessionId, token]);
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, attachmentText?: string) => {
       if (!sessionId || !content.trim() || !token) return;
 
       const userMsg: Message = {
@@ -56,13 +58,17 @@ export function useChat(sessionId: string | null, token?: string | null) {
 
       try {
         abortRef.current = new AbortController();
+        const body: Record<string, unknown> = { content };
+        if (attachmentText) {
+          body.attachment_text = attachmentText;
+        }
         const res = await fetch(`${API_BASE}/chat/sessions/${sessionId}/messages`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...authHeaders(),
           },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify(body),
           signal: abortRef.current.signal,
         });
 
