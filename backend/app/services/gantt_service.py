@@ -117,10 +117,11 @@ async def update_gantt(db: AsyncSession, case_id: uuid.UUID, gantt_data: dict) -
     await db.flush()
 
 
-async def apply_template(db: AsyncSession, case: Case) -> dict:
-    template = TEMPLATES.get(case.case_type)
+async def apply_template(db: AsyncSession, case: Case, template_type: str | None = None) -> dict:
+    key = template_type or case.case_type
+    template = TEMPLATES.get(key)
     if not template:
-        raise ValueError(f"无甘特图模板: {case.case_type}")
+        raise ValueError(f"无甘特图模板: {key}")
     resolved = _resolve_dates([GanttNode(**n.model_dump()) for n in template.nodes])
     data = GanttData(nodes=resolved, dependencies=template.dependencies)
     await update_gantt(db, case.id, data.model_dump(by_alias=True))

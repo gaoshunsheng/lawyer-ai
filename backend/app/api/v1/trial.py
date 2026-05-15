@@ -28,6 +28,15 @@ from app.services import trial_service, case_service
 router = APIRouter(prefix="/trial", tags=["trial"])
 
 
+@router.get("/list", response_model=list[TrialSimulationResponse])
+async def list_trials(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    sims = await trial_service.list_all_simulations(db, current_user.tenant_id)
+    return [TrialSimulationResponse.model_validate(s) for s in sims]
+
+
 @router.post("/cases/{case_id}/start", response_model=TrialSimulationResponse, status_code=201)
 async def start_trial(
     case_id: uuid.UUID,
@@ -80,13 +89,13 @@ async def respond_trial(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    sim = await trial_service.get_simulation(db, sim_id)
+    sim = await trial_service.get_simulation(db, sim_id, tenant_id=current_user.tenant_id)
     if not sim or sim.tenant_id != current_user.tenant_id:
         raise HTTPException(404, "模拟不存在")
     if sim.status != "active":
         raise HTTPException(400, "模拟已结束")
 
-    rounds = await trial_service.get_rounds(db, sim_id)
+    rounds = await trial_service.get_rounds(db, sim_id, tenant_id=current_user.tenant_id)
     next_round = sim.rounds_completed + 1
 
     async def event_stream():
@@ -135,11 +144,11 @@ async def end_trial(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    sim = await trial_service.get_simulation(db, sim_id)
+    sim = await trial_service.get_simulation(db, sim_id, tenant_id=current_user.tenant_id)
     if not sim or sim.tenant_id != current_user.tenant_id:
         raise HTTPException(404, "模拟不存在")
 
-    rounds = await trial_service.get_rounds(db, sim_id)
+    rounds = await trial_service.get_rounds(db, sim_id, tenant_id=current_user.tenant_id)
     rounds_data = [
         {"round": r.round_num, "role": r.role, "content": r.content, "strength": r.argument_strength}
         for r in rounds
@@ -164,7 +173,7 @@ async def get_trial(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    sim = await trial_service.get_simulation(db, sim_id)
+    sim = await trial_service.get_simulation(db, sim_id, tenant_id=current_user.tenant_id)
     if not sim or sim.tenant_id != current_user.tenant_id:
         raise HTTPException(404, "模拟不存在")
     return TrialSimulationResponse.model_validate(sim)
@@ -176,10 +185,10 @@ async def get_trial_rounds(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    sim = await trial_service.get_simulation(db, sim_id)
+    sim = await trial_service.get_simulation(db, sim_id, tenant_id=current_user.tenant_id)
     if not sim or sim.tenant_id != current_user.tenant_id:
         raise HTTPException(404, "模拟不存在")
-    rounds = await trial_service.get_rounds(db, sim_id)
+    rounds = await trial_service.get_rounds(db, sim_id, tenant_id=current_user.tenant_id)
     return [TrialRoundResponse.model_validate(r) for r in rounds]
 
 
@@ -189,7 +198,7 @@ async def get_trial_report(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    sim = await trial_service.get_simulation(db, sim_id)
+    sim = await trial_service.get_simulation(db, sim_id, tenant_id=current_user.tenant_id)
     if not sim or sim.tenant_id != current_user.tenant_id:
         raise HTTPException(404, "模拟不存在")
     if not sim.strategy_report:
@@ -206,5 +215,5 @@ async def list_case_trials(
     case = await case_service.get_case(db, case_id, current_user.tenant_id)
     if not case:
         raise HTTPException(404, "案件不存在")
-    sims = await trial_service.list_simulations(db, case_id)
+    sims = await trial_service.list_simulations(db, case_id, tenant_id=current_user.tenant_id)
     return [TrialSimulationResponse.model_validate(s) for s in sims]

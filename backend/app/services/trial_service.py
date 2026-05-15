@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.trial import TrialSimulation, TrialRound
 
+ALLOWED_UPDATE_FIELDS = {"status", "dispute_focus", "strategy_report", "rounds_completed"}
+
 
 async def create_simulation(
     db: AsyncSession,
@@ -25,16 +27,26 @@ async def create_simulation(
     return sim
 
 
-async def get_simulation(db: AsyncSession, sim_id: uuid.UUID) -> TrialSimulation | None:
-    stmt = select(TrialSimulation).where(TrialSimulation.id == sim_id)
+async def get_simulation(
+    db: AsyncSession, sim_id: uuid.UUID, tenant_id: uuid.UUID | None = None,
+) -> TrialSimulation | None:
+    conditions = [TrialSimulation.id == sim_id]
+    if tenant_id:
+        conditions.append(TrialSimulation.tenant_id == tenant_id)
+    stmt = select(TrialSimulation).where(*conditions)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
-async def list_simulations(db: AsyncSession, case_id: uuid.UUID) -> list[TrialSimulation]:
+async def list_simulations(
+    db: AsyncSession, case_id: uuid.UUID, tenant_id: uuid.UUID | None = None,
+) -> list[TrialSimulation]:
+    conditions = [TrialSimulation.case_id == case_id]
+    if tenant_id:
+        conditions.append(TrialSimulation.tenant_id == tenant_id)
     stmt = (
         select(TrialSimulation)
-        .where(TrialSimulation.case_id == case_id)
+        .where(*conditions)
         .order_by(TrialSimulation.created_at.desc())
     )
     result = await db.execute(stmt)
@@ -63,19 +75,39 @@ async def add_round(
     return r
 
 
-async def get_rounds(db: AsyncSession, sim_id: uuid.UUID) -> list[TrialRound]:
-    stmt = (
-        select(TrialRound)
-        .where(TrialRound.simulation_id == sim_id)
-        .order_by(TrialRound.round_num)
-    )
+async def get_rounds(
+    db: AsyncSession, sim_id: uuid.UUID, tenant_id: uuid.UUID | None = None,
+) -> list[TrialRound]:
+    if tenant_id:
+        stmt = (
+            select(TrialRound)
+            .join(TrialSimulation, TrialRound.simulation_id == TrialSimulation.id)
+            .where(TrialRound.simulation_id == sim_id, TrialSimulation.tenant_id == tenant_id)
+            .order_by(TrialRound.round_num)
+        )
+    else:
+        stmt = (
+            select(TrialRound)
+            .where(TrialRound.simulation_id == sim_id)
+            .order_by(TrialRound.round_num)
+        )
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
 
 async def update_simulation(db: AsyncSession, sim: TrialSimulation, data: dict) -> TrialSimulation:
     for k, v in data.items():
-        if v is not None:
+        if k in ALLOWED_UPDATE_FIELDS and v is not None:
             setattr(sim, k, v)
     await db.flush()
     return sim
+
+
+async def list_all_simulations(db: AsyncSession, tenant_id: uuid.UUID) -> list[TrialSimulation]:
+    stmt = (
+        select(TrialSimulation)
+        .where(TrialSimulation.tenant_id == tenant_id)
+        .order_by(TrialSimulation.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())

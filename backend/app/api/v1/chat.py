@@ -51,6 +51,9 @@ async def get_messages(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    session = await chat_service.get_session(db, session_id)
+    if not session or session.tenant_id != current_user.tenant_id:
+        raise HTTPException(404, "会话不存在")
     messages = await chat_service.get_session_messages(db, session_id)
     return [ChatMessageResponse.model_validate(m) for m in messages]
 
@@ -62,6 +65,9 @@ async def send_message(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    session = await chat_service.get_session(db, session_id)
+    if not session or session.tenant_id != current_user.tenant_id:
+        raise HTTPException(404, "会话不存在")
     history = await chat_service.get_session_messages(db, session_id)
     messages = [{"role": m.role, "content": m.content} for m in history]
 
@@ -104,6 +110,9 @@ async def upload_attachment(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    session = await chat_service.get_session(db, session_id)
+    if not session or session.tenant_id != current_user.tenant_id:
+        raise HTTPException(404, "会话不存在")
     content = await file.read()
     if len(content) > MAX_ATTACHMENT_SIZE:
         raise HTTPException(413, "文件大小超过10MB限制")
@@ -137,7 +146,9 @@ async def export_session(
         raise HTTPException(404, "会话没有消息")
 
     session = await chat_service.get_session(db, session_id)
-    title = session.title if session else "咨询记录"
+    if not session or session.tenant_id != current_user.tenant_id:
+        raise HTTPException(404, "会话不存在")
+    title = session.title
 
     if format == "docx":
         from io import BytesIO
@@ -178,6 +189,9 @@ async def link_case(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    existing = await chat_service.get_session(db, session_id)
+    if not existing or existing.tenant_id != current_user.tenant_id:
+        raise HTTPException(404, "会话不存在")
     session = await chat_service.link_case(db, session_id, req.case_id)
     if not session:
         raise HTTPException(404, "会话不存在")
@@ -190,6 +204,9 @@ async def unlink_case(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    existing = await chat_service.get_session(db, session_id)
+    if not existing or existing.tenant_id != current_user.tenant_id:
+        raise HTTPException(404, "会话不存在")
     session = await chat_service.unlink_case(db, session_id)
     if not session:
         raise HTTPException(404, "会话不存在")

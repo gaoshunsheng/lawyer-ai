@@ -64,7 +64,7 @@ export function MessageInput({ onSend, isStreaming, onStop, sessionId, token, on
           type="file"
           className="hidden"
           onChange={handleFileSelect}
-          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+          accept=".pdf,.doc,.docx,.txt"
         />
         <button
           onClick={() => fileInputRef.current?.click()}

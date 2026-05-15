@@ -41,16 +41,18 @@ async def update_gantt(
     return data
 
 
-@router.post("/apply-template")
+@router.post("/template")
 async def apply_template(
     case_id: uuid.UUID,
+    body: dict | None = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     case = await case_service.get_case(db, case_id, current_user.tenant_id)
     if not case:
         raise HTTPException(404, "案件不存在")
+    template_type = (body or {}).get("template_type")
     try:
-        return await gantt_service.apply_template(db, case)
+        return await gantt_service.apply_template(db, case, template_type=template_type)
     except ValueError as e:
         raise HTTPException(400, str(e))

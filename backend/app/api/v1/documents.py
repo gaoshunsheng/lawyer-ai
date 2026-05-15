@@ -252,6 +252,9 @@ async def diff_versions(
     doc = await document_service.get_document(db, doc_id)
     if not doc or doc.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=404, detail="文书不存在")
+    target = await document_service.get_document(db, target_id)
+    if not target or target.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="目标版本不存在")
     try:
         return await document_service.diff_versions(db, doc_id, target_id)
     except ValueError as e:
@@ -268,6 +271,9 @@ async def rollback_version(
     doc = await document_service.get_document(db, doc_id)
     if not doc or doc.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=404, detail="文书不存在")
+    target = await document_service.get_document(db, target_id)
+    if not target or target.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="目标版本不存在")
     try:
         new_doc = await document_service.rollback_version(db, doc, target_id)
         return DocumentResponse.model_validate(new_doc)

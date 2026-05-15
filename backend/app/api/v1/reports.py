@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -89,29 +90,32 @@ async def export_report(
     else:
         from io import BytesIO
         from reportlab.lib.pagesizes import A4
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.cidfonts import UnicodeCIDFont
         from reportlab.pdfgen import canvas as pdf_canvas
 
         buf = BytesIO()
         c = pdf_canvas.Canvas(buf, pagesize=A4)
-        c.setFont("Helvetica", 16)
-        c.drawString(72, A4[1] - 72, "Case Overview Report")
-        c.setFont("Helvetica", 11)
+        pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
+        c.setFont("STSong-Light", 16)
+        c.drawString(72, A4[1] - 72, "案件概览报告")
+        c.setFont("STSong-Light", 11)
         y = A4[1] - 110
-        c.drawString(72, y, f"Total Cases: {data['total']}")
+        c.drawString(72, y, f"案件总数: {data['total']}")
         y -= 20
-        c.drawString(72, y, f"Avg Duration (days): {data['avg_duration_days']}")
+        c.drawString(72, y, f"平均周期(天): {data['avg_duration_days']}")
         y -= 20
-        c.drawString(72, y, f"Win Rate (%): {data['win_rate']}")
+        c.drawString(72, y, f"胜诉率(%): {data['win_rate']}")
         y -= 20
-        c.drawString(72, y, f"Total Claim Amount: {data['total_claim_amount']}")
+        c.drawString(72, y, f"总标的额: {data['total_claim_amount']}")
         y -= 30
-        c.drawString(72, y, "By Type:")
+        c.drawString(72, y, "按类型统计:")
         y -= 18
         for row in data["by_type"]:
-            c.drawString(90, y, f"{row['type']}: {row['count']} cases, {row['amount']}")
+            c.drawString(90, y, f"{row['type']}: {row['count']}件, {row['amount']}")
             y -= 16
         y -= 10
-        c.drawString(72, y, "By Status:")
+        c.drawString(72, y, "按状态统计:")
         y -= 18
         for row in data["by_status"]:
             c.drawString(90, y, f"{row['status']}: {row['count']}")
