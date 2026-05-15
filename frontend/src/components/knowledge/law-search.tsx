@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/providers/auth-provider";
+import { api } from "@/lib/api-client";
 
 interface Law {
   id: string;
@@ -12,11 +14,45 @@ interface Law {
 }
 
 export function LawSearch() {
+  const { token } = useAuth();
   const [keyword, setKeyword] = useState("");
   const [lawType, setLawType] = useState("");
   const [results, setResults] = useState<Law[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  const fetchFavorites = useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await api.get<{ id: string; target_id: string }[]>("/favorites?target_type=law", token);
+      setFavorites(new Set(data.map((f) => f.target_id)));
+    } catch {}
+  }, [token]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, [fetchFavorites]);
+
+  const toggleFavorite = async (lawId: string) => {
+    if (!token) return;
+    const isFav = favorites.has(lawId);
+    try {
+      if (isFav) {
+        const data = await api.get<{ id: string; target_id: string }[]>(`/favorites?target_type=law`, token);
+        const fav = data.find((f) => f.target_id === lawId);
+        if (fav) await api.delete(`/favorites/${fav.id}`, token);
+        setFavorites((prev) => {
+          const next = new Set(prev);
+          next.delete(lawId);
+          return next;
+        });
+      } else {
+        await api.post("/favorites", { target_type: "law", target_id: lawId }, token);
+        setFavorites((prev) => new Set(prev).add(lawId));
+      }
+    } catch {}
+  };
 
   const handleSearch = async () => {
     if (!keyword.trim()) return;
@@ -80,27 +116,44 @@ export function LawSearch() {
 
       <div className="space-y-3">
         {results.map((law) => (
-          <a
+          <div
             key={law.id}
-            href={`/knowledge/laws/${law.id}`}
             className="block rounded-lg border p-4 hover:bg-accent"
           >
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                {lawTypeLabels[law.law_type] || law.law_type}
-              </span>
-              {law.status === "effective" && (
-                <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
-                  有效
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  {lawTypeLabels[law.law_type] || law.law_type}
                 </span>
-              )}
+                {law.status === "effective" && (
+                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+                    有效
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => toggleFavorite(law.id)}
+                  className={`text-lg ${favorites.has(law.id) ? "text-yellow-400" : "text-gray-300"} hover:text-yellow-400`}
+                >
+                  {favorites.has(law.id) ? "★" : "☆"}
+                </button>
+                <a
+                  href={`/knowledge/laws/${law.id}`}
+                  className="text-xs text-primary hover:underline"
+                >
+                  AI解读
+                </a>
+              </div>
             </div>
-            <h3 className="mt-2 font-medium">{law.title}</h3>
+            <a href={`/knowledge/laws/${law.id}`}>
+              <h3 className="mt-2 font-medium">{law.title}</h3>
+            </a>
             <div className="mt-1 flex gap-4 text-sm text-muted-foreground">
               {law.promulgating_body && <span>{law.promulgating_body}</span>}
               {law.effective_date && <span>施行: {law.effective_date}</span>}
             </div>
-          </a>
+          </div>
         ))}
       </div>
     </div>
