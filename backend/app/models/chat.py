@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,11 +14,13 @@ class ChatSession(Base, BaseMixin):
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id"), index=True)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), index=True)
-    case_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    case_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=True)
     title: Mapped[str | None] = mapped_column(String(200))
     status: Mapped[str] = mapped_column(String(20), default="active")
+    follow_up_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     messages: Mapped[list[ChatMessage]] = relationship(back_populates="session", order_by="ChatMessage.created_at")
+    case: Mapped["Case | None"] = relationship()  # lazy load
 
 
 class ChatMessage(Base, BaseMixin):
@@ -29,5 +31,7 @@ class ChatMessage(Base, BaseMixin):
     content: Mapped[str] = mapped_column(Text)
     tokens_used: Mapped[int | None] = mapped_column(Integer)
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB)
+    is_follow_up: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    attachments: Mapped[dict | None] = mapped_column(JSONB)
 
     session: Mapped[ChatSession] = relationship(back_populates="messages")
