@@ -1,11 +1,11 @@
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_role
 from app.models import ResponseFeedback, User
 
 router = APIRouter(prefix="/feedback", tags=["feedback"])
@@ -38,3 +38,28 @@ async def create_feedback(
     )
     db.add(fb)
     return {"status": "ok"}
+
+
+@router.get("/stats")
+async def get_feedback_stats(
+    days: int = Query(30, ge=1, le=365),
+    current_user: User = Depends(require_role("platform_admin", "tenant_admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.services import feedback_service as fb_service
+
+    stats = await fb_service.get_feedback_stats(db, current_user.tenant_id, days)
+    return stats
+
+
+@router.get("/trends")
+async def get_feedback_trends(
+    days: int = Query(30, ge=1, le=365),
+    granularity: str = Query("day", pattern="^(day|week|month)$"),
+    current_user: User = Depends(require_role("platform_admin", "tenant_admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.services import feedback_service as fb_service
+
+    trends = await fb_service.get_feedback_trends(db, current_user.tenant_id, days, granularity)
+    return trends
