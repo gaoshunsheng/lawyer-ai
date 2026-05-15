@@ -2,12 +2,26 @@ import time
 import pytest
 from httpx import AsyncClient
 
-# These tests require a running DB and share the asyncpg engine across tests.
-# They may fail due to event-loop conflicts with pytest-asyncio.
-# Mark them as integration tests so they can be skipped in CI if needed.
+# These tests require a running PostgreSQL database.
+# They are skipped automatically if the DB is not reachable.
+
+
+def _check_db():
+    """Check if PostgreSQL is reachable."""
+    import socket
+    try:
+        s = socket.create_connection(("127.0.0.1", 5432), timeout=1)
+        s.close()
+        return True
+    except OSError:
+        return False
+
+
+requires_db = pytest.mark.skipif(not _check_db(), reason="PostgreSQL not running")
 
 
 @pytest.mark.asyncio
+@requires_db
 async def test_register(client: AsyncClient):
     unique = f"testlawyer_{int(time.time())}"
     response = await client.post(
@@ -25,6 +39,7 @@ async def test_register(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+@requires_db
 async def test_login(client: AsyncClient):
     unique = f"loginuser_{int(time.time())}"
     reg = await client.post(
@@ -47,6 +62,7 @@ async def test_login(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+@requires_db
 async def test_login_wrong_password(client: AsyncClient):
     unique = f"wrongpw_{int(time.time())}"
     reg = await client.post(
