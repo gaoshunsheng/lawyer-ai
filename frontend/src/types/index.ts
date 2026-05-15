@@ -227,3 +227,12 @@ export interface DocumentListResponse {
   page: number;
   page_size: number;
 }
+
+export interface FavoriteItem {
+  id: string;
+  user_id: string;
+  target_type: "law" | "case" | "article";
+  target_id: string;
+  notes: string | null;
+  created_at: string;
+}
