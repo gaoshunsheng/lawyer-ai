@@ -10,6 +10,7 @@ from app.models.model_config import ModelConfig, ModelProvider
 from app.models.case import Case, CaseTimeline, Evidence
 from app.models.document import Document, DocumentTemplate
 from app.models.favorite import Favorite
+from app.models.trial import TrialSimulation, TrialRound
 
 __all__ = [
     "Base",
@@ -34,4 +35,6 @@ __all__ = [
     "Document",
     "DocumentTemplate",
     "Favorite",
+    "TrialSimulation",
+    "TrialRound",
 ]
