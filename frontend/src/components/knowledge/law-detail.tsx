@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/providers/auth-provider";
+import { api } from "@/lib/api-client";
 
 interface LawArticle {
   id: string;
@@ -21,14 +23,15 @@ interface LawDetail {
 }
 
 export function LawDetail({ lawId }: { lawId: string }) {
+  const { token } = useAuth();
   const [law, setLaw] = useState<LawDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLaw = async () => {
+      if (!token) return;
       try {
-        const res = await fetch(`/api/v1/knowledge/laws/${lawId}`);
-        const data = await res.json();
+        const data = await api.get<LawDetail>(`/knowledge/laws/${lawId}`, token);
         setLaw(data);
       } catch {
         console.error("获取法规详情失败");
@@ -37,7 +40,7 @@ export function LawDetail({ lawId }: { lawId: string }) {
       }
     };
     fetchLaw();
-  }, [lawId]);
+  }, [lawId, token]);
 
   if (loading) return <div className="py-8 text-center text-muted-foreground">加载中...</div>;
   if (!law) return <div className="py-8 text-center text-muted-foreground">法规不存在</div>;

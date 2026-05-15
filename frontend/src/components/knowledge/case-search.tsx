@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/providers/auth-provider";
+import { api } from "@/lib/api-client";
 
 interface Case {
   id: string;
@@ -13,18 +15,18 @@ interface Case {
 }
 
 export function CaseSearch() {
+  const { token } = useAuth();
   const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<Case[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
-    if (!keyword.trim()) return;
+    if (!keyword.trim() || !token) return;
     setLoading(true);
     try {
       const params = new URLSearchParams({ keyword, page: "1", page_size: "20" });
-      const res = await fetch(`/api/v1/knowledge/cases?${params}`);
-      const data = await res.json();
+      const data = await api.get<{ items: Case[]; total: number }>(`/knowledge/cases?${params}`, token);
       setResults(data.items || []);
       setTotal(data.total || 0);
     } catch {

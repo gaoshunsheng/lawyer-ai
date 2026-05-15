@@ -55,14 +55,12 @@ export function LawSearch() {
   };
 
   const handleSearch = async () => {
-    if (!keyword.trim()) return;
+    if (!keyword.trim() || !token) return;
     setLoading(true);
     try {
       const params = new URLSearchParams({ keyword, page: "1", page_size: "20" });
       if (lawType) params.set("law_type", lawType);
-      // Token would come from auth context in production
-      const res = await fetch(`/api/v1/knowledge/laws?${params}`);
-      const data = await res.json();
+      const data = await api.get<{ items: Law[]; total: number }>(`/knowledge/laws?${params}`, token);
       setResults(data.items || []);
       setTotal(data.total || 0);
     } catch {
