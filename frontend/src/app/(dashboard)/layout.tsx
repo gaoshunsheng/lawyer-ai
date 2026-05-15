@@ -8,6 +8,7 @@ const navItems = [
   { href: "/dashboard", label: "概览", icon: "📊" },
   { href: "/chat", label: "智能咨询", icon: "💬" },
   { href: "/cases", label: "案件管理", icon: "📋" },
+  { href: "/documents", label: "文书中心", icon: "📝" },
   { href: "/calculator", label: "赔偿计算", icon: "🧮" },
   { href: "/knowledge", label: "知识库", icon: "📚" },
   { href: "/token-usage", label: "Token 监控", icon: "📈" },
