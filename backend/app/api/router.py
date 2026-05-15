@@ -13,6 +13,7 @@ from app.api.v1.token_usage import router as token_usage_router
 from app.api.v1.favorites import router as favorites_router
 from app.api.v1.trial import router as trial_router
 from app.api.v1.gantt import router as gantt_router
+from app.api.v1.reports import router as reports_router
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth_router)
@@ -29,3 +30,4 @@ api_router.include_router(models_router)
 api_router.include_router(favorites_router)
 api_router.include_router(trial_router)
 api_router.include_router(gantt_router)
+api_router.include_router(reports_router)
