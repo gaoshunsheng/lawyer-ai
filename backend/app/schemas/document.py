@@ -63,3 +63,14 @@ class DocumentListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class BatchGenerateRequest(BaseModel):
+    template_id: uuid.UUID
+    variable_sets: list[dict] = Field(..., min_length=1, max_length=20)
+
+
+class VersionDiffResponse(BaseModel):
+    old_version: int
+    new_version: int
+    diffs: list[dict]

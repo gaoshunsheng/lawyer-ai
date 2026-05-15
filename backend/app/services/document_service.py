@@ -505,3 +505,66 @@ async def create_version(db: AsyncSession, doc: Document) -> Document:
     db.add(new_version)
     await db.flush()
     return new_version
+
+
+# ── Version History & Diff ──
+
+async def list_versions(db: AsyncSession, doc_id: uuid.UUID) -> list[Document]:
+    """List all versions of a document by following parent chain."""
+    doc = await get_document(db, doc_id)
+    if not doc:
+        return []
+    root_id = doc.id
+    current = doc
+    for _ in range(50):  # safety limit
+        if not current.parent_id:
+            root_id = current.id
+            break
+        parent = await get_document(db, current.parent_id)
+        if not parent:
+            root_id = current.id
+            break
+        root_id = parent.id
+        current = parent
+
+    from sqlalchemy import or_
+    stmt = (
+        select(Document)
+        .where(or_(Document.id == root_id, Document.parent_id == root_id))
+        .order_by(Document.version)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def diff_versions(db: AsyncSession, old_id: uuid.UUID, new_id: uuid.UUID) -> dict:
+    """Compute unified diff between two document versions."""
+    import difflib
+
+    old = await get_document(db, old_id)
+    new = await get_document(db, new_id)
+    if not old or not new:
+        raise ValueError("版本不存在")
+
+    old_text = old.content.get("raw", "") if old.content else ""
+    new_text = new.content.get("raw", "") if new.content else ""
+    diff_lines = list(difflib.unified_diff(old_text.splitlines(), new_text.splitlines(), lineterm=""))
+    diffs = []
+    for line in diff_lines:
+        if line.startswith("+") and not line.startswith("+++"):
+            diffs.append({"type": "added", "content": line[1:]})
+        elif line.startswith("-") and not line.startswith("---"):
+            diffs.append({"type": "removed", "content": line[1:]})
+    return {"old_version": old.version, "new_version": new.version, "diffs": diffs}
+
+
+async def rollback_version(db: AsyncSession, doc: Document, target_id: uuid.UUID) -> Document:
+    """Roll back to a previous version by creating a new version with target content."""
+    target = await get_document(db, target_id)
+    if not target:
+        raise ValueError("目标版本不存在")
+    new_version = await create_version(db, doc)
+    new_version.content = target.content
+    new_version.variables = target.variables
+    await db.flush()
+    return new_version

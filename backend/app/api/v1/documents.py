@@ -14,12 +14,14 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models import User
 from app.schemas.document import (
+    BatchGenerateRequest,
     DocumentCreate,
     DocumentGenerateRequest,
     DocumentListResponse,
     DocumentResponse,
     DocumentUpdate,
     TemplateResponse,
+    VersionDiffResponse,
 )
 from app.services import document_service
 
@@ -222,3 +224,99 @@ async def smart_suggest(
         })
 
     return {"document_id": str(doc_id), "suggestions": suggestions}
+
+
+# ── Version History & Diff ──
+
+
+@doc_router.get("/{doc_id}/versions", response_model=list[DocumentResponse])
+async def list_versions(
+    doc_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    doc = await document_service.get_document(db, doc_id)
+    if not doc or doc.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="文书不存在")
+    versions = await document_service.list_versions(db, doc_id)
+    return [DocumentResponse.model_validate(v) for v in versions]
+
+
+@doc_router.get("/{doc_id}/versions/{target_id}/diff", response_model=VersionDiffResponse)
+async def diff_versions(
+    doc_id: uuid.UUID,
+    target_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    doc = await document_service.get_document(db, doc_id)
+    if not doc or doc.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="文书不存在")
+    try:
+        return await document_service.diff_versions(db, doc_id, target_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@doc_router.post("/{doc_id}/versions/{target_id}/rollback", response_model=DocumentResponse)
+async def rollback_version(
+    doc_id: uuid.UUID,
+    target_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    doc = await document_service.get_document(db, doc_id)
+    if not doc or doc.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="文书不存在")
+    try:
+        new_doc = await document_service.rollback_version(db, doc, target_id)
+        return DocumentResponse.model_validate(new_doc)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+# ── Search-in-Context ──
+
+
+@doc_router.post("/search-in-context")
+async def search_in_context(
+    query: str = Query(..., min_length=2),
+    search_type: str = Query("law", pattern="^(law|case|both)$"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    results = {}
+    if search_type in ("law", "both"):
+        from app.services.knowledge_service import list_laws
+        laws, _ = await list_laws(db, tenant_id=current_user.tenant_id, keyword=query, page=1, page_size=5)
+        results["laws"] = [{"id": str(l.id), "title": l.title, "law_type": l.law_type} for l in laws]
+    if search_type in ("case", "both"):
+        from app.services.knowledge_service import list_precedent_cases
+        cases, _ = await list_precedent_cases(db, tenant_id=current_user.tenant_id, keyword=query, page=1, page_size=5)
+        results["cases"] = [{"id": str(c.id), "case_name": c.case_name, "case_type": c.case_type} for c in cases]
+    return results
+
+
+# ── Batch Generation ──
+
+
+@doc_router.post("/batch-generate")
+async def batch_generate(
+    req: BatchGenerateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    tmpl = await document_service.get_template(db, req.template_id)
+    if not tmpl:
+        raise HTTPException(status_code=404, detail="模板不存在")
+    created = []
+    for variables in req.variable_sets:
+        content = {"raw": tmpl.content_template, "variables": variables}
+        doc = await document_service.create_document(
+            db, current_user.tenant_id, current_user.id,
+            {"template_id": str(req.template_id), "title": f"{tmpl.name} - 批量生成",
+             "doc_type": tmpl.doc_type},
+            content,
+        )
+        created.append(str(doc.id))
+    return {"created_ids": created, "count": len(created)}
