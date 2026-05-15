@@ -1,11 +1,15 @@
+import json
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
-from app.models import User
+from app.core.dependencies import get_current_user, require_role
+from app.models import Law, PrecedentCase, User
 from app.schemas.knowledge import (
     CaseDetailResponse,
     CaseResponse,
@@ -93,3 +97,128 @@ async def get_case_detail(
         full_text=case.full_text,
         key_points=case.key_points,
     )
+
+
+# ── AI Law Interpretation (SSE) ──
+
+
+@router.post("/laws/{law_id}/interpret")
+async def interpret_law(
+    law_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    law = await get_law(db, law_id)
+    if not law:
+        raise HTTPException(status_code=404, detail="法规不存在")
+
+    articles = await get_law_articles(db, law_id)
+
+    async def event_stream():
+        import asyncio
+
+        from openai import AsyncOpenAI
+
+        yield f"data: {json.dumps({'status': 'analyzing', 'message': '正在分析法规...'})}\n\n"
+
+        client = AsyncOpenAI(
+            api_key=settings.ZHIPU_API_KEY,
+            base_url=settings.ZHIPU_API_BASE,
+        )
+
+        articles_text = "\n".join([
+            f"第{a.article_number}条 {a.content}"
+            for a in articles[:20]
+        ])
+
+        prompt = f"""请对以下法规进行专业解读：
+
+法规名称：{law.title}
+法规类型：{law.law_type}
+颁布机构：{law.promulgating_body or '未知'}
+生效日期：{law.effective_date or '未知'}
+
+条款内容：
+{articles_text if articles_text else '暂无法条数据'}
+
+请按以下结构输出解读（markdown格式）：
+1. 法规概述（立法目的、适用范围）
+2. 核心条款解读（逐条分析关键条款的含义和实践应用）
+3. 实务影响（对劳动关系的实际影响）
+4. 注意事项（实践中需特别注意的问题）
+5. 相关法规（列出相关的配套法规或司法解释）"""
+
+        response = await client.chat.completions.create(
+            model="glm-5-turbo",
+            messages=[
+                {"role": "system", "content": "你是一位资深劳动法律师，擅长用通俗易懂的语言解读法律条文。"},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.5,
+            max_tokens=4096,
+            stream=True,
+        )
+
+        async for chunk in response:
+            if chunk.choices[0].delta.content:
+                yield f"data: {json.dumps({'content': chunk.choices[0].delta.content})}\n\n"
+
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+# ── Batch Import (Admin Only) ──
+
+
+class BatchImportRequest(BaseModel):
+    laws: list[dict] = []
+    cases: list[dict] = []
+
+
+@router.post("/import")
+async def batch_import(
+    req: BatchImportRequest,
+    current_user: User = Depends(require_role("platform_admin", "tenant_admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    imported = {"laws": 0, "cases": 0, "errors": []}
+
+    for law_data in req.laws:
+        try:
+            law = Law(
+                title=law_data.get("title", ""),
+                law_type=law_data.get("law_type", "law"),
+                promulgating_body=law_data.get("promulgating_body"),
+                document_number=law_data.get("document_number"),
+                publish_date=law_data.get("publish_date"),
+                effective_date=law_data.get("effective_date"),
+                status=law_data.get("status", "effective"),
+                full_text=law_data.get("full_text", ""),
+            )
+            db.add(law)
+            imported["laws"] += 1
+        except Exception as e:
+            imported["errors"].append(f"导入法规失败: {str(e)}")
+
+    for case_data in req.cases:
+        try:
+            case = PrecedentCase(
+                case_name=case_data.get("case_name", ""),
+                case_type=case_data.get("case_type"),
+                case_number=case_data.get("case_number"),
+                court=case_data.get("court"),
+                judgment_date=case_data.get("judgment_date"),
+                plaintiff=case_data.get("plaintiff"),
+                defendant=case_data.get("defendant"),
+                result=case_data.get("result"),
+                summary=case_data.get("summary"),
+                full_text=case_data.get("full_text"),
+            )
+            db.add(case)
+            imported["cases"] += 1
+        except Exception as e:
+            imported["errors"].append(f"导入案例失败: {str(e)}")
+
+    await db.flush()
+    return imported
